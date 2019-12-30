@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::{self, prelude::*, BufReader};
+use std::io::{prelude::*, BufReader};
 
 fn fuel(x: i64) -> i64 {
     (x / 3) - 2
@@ -18,7 +18,7 @@ fn fuel2(x: i64) -> i64 {
     }
 }
 
-fn main() {
+fn aoc01() {
     let filename = "input/1b.txt";
 
     println!("{}", fuel2(12));
@@ -35,4 +35,8 @@ fn main() {
         total += fuel2(line.unwrap().trim().parse::<i64>().unwrap());
     }
     println!("{}", total);
+}
+
+fn main() {
+    aoc01();
 }
