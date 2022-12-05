@@ -1,5 +1,6 @@
 import sys
 
+
 def common_item(a, b):
     a_set = set(a)
     for b_char in b:
@@ -7,11 +8,13 @@ def common_item(a, b):
             return b_char
     raise Exception("Couldnt find duplicate")
 
+
 def common_sack(s):
-    return common_item(s[:len(s)//2], s[len(s)//2:])
+    return common_item(s[: len(s) // 2], s[len(s) // 2 :])
+
 
 def priority(l):
-    return (ord(l) - ord("A") + 27) if l.isupper() else (ord(l) - ord("a") + 1);
+    return (ord(l) - ord("A") + 27) if l.isupper() else (ord(l) - ord("a") + 1)
 
 
 def badge(triple):
@@ -21,6 +24,7 @@ def badge(triple):
         if c in set_a and c in set_b:
             return c
 
+
 def triples_to_sack(data):
     while True:
         d1 = next(data, None)
@@ -29,7 +33,7 @@ def triples_to_sack(data):
         d2 = next(data)
         d3 = next(data)
         b = badge([d1, d2, d3])
-        yield b+b
+        yield b + b
 
 
 def score(data):
@@ -44,6 +48,5 @@ def readin():
         yield l[:-1]
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     print(score(triples_to_sack(readin())))
-

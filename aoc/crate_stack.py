@@ -1,7 +1,7 @@
 import sys
 
-class CrateStack:
 
+class CrateStack:
     def __init__(self):
         self.stacks = []
 
@@ -33,7 +33,7 @@ def problem(lines):
     stacks = [[] for i in range(0, num_stacks)]
     for l in lines[:-1]:
         for idx in range(0, num_stacks):
-            charr = 4*idx + 1
+            charr = 4 * idx + 1
             if charr >= len(l):
                 continue
             if l[charr] == " ":
@@ -56,6 +56,7 @@ def read_in(data):
         else:
             stacks.append(d)
     return "".join([s[-1] for s in p.stacks])
+
 
 if __name__ == "__main__":
     print(read_in(sys.stdin))

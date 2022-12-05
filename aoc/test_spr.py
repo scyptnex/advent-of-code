@@ -2,8 +2,8 @@ import unittest
 
 import aoc.spr as spr
 
-class TestSpr(unittest.TestCase):
 
+class TestSpr(unittest.TestCase):
     def test_outcome(self):
         self.assertEqual(spr.outcome_score("R", "R"), 3)
         self.assertEqual(spr.outcome_score("R", "P"), 6)

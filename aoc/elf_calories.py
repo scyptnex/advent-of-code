@@ -1,5 +1,6 @@
 import sys
 
+
 def main():
     cur_elf = 0
     elves = []
@@ -15,7 +16,7 @@ def main():
     elves.sort()
     print(elves)
     print(elves[-1])
-    print(elves[-3] + elves[-2] +elves[-1])
+    print(elves[-3] + elves[-2] + elves[-1])
 
 
 if __name__ == "__main__":

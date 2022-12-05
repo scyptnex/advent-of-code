@@ -41,15 +41,18 @@ def total(seq):
         t += score(THEM[s[0]], YOU[s[1]])
     return t
 
+
 def determine_play(them, outcome):
     for k in YOU:
         if PROP[outcome] == outcome_score(THEM[them], YOU[k]):
             return k
     raise "ROFL"
 
+
 def recode(seq):
     for s in seq:
         yield [s[0], determine_play(s[0], s[1])]
+
 
 def parse(gen):
     for l in gen:

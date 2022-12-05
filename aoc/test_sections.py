@@ -29,7 +29,7 @@ class TestSections(unittest.TestCase):
         self.assertTrue(sections.overlaps((3, 3), (2, 4)))
         self.assertFalse(sections.overlaps((1, 2), (3, 4)))
 
-        self.assertTrue(sections.overlaps ((2, 4),(1, 3)))
-        self.assertTrue(sections.overlaps ((2, 4),(3, 5)))
-        self.assertTrue(sections.overlaps ((2, 4),(3, 3)))
-        self.assertFalse(sections.overlaps((3, 4),(1, 2)))
+        self.assertTrue(sections.overlaps((2, 4), (1, 3)))
+        self.assertTrue(sections.overlaps((2, 4), (3, 5)))
+        self.assertTrue(sections.overlaps((2, 4), (3, 3)))
+        self.assertFalse(sections.overlaps((3, 4), (1, 2)))
