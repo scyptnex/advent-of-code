@@ -10,7 +10,7 @@ class TestDirect(unittest.TestCase):
         d.ls("42 a")
         d.ls("99 b")
         self.assertEqual(d.directs.keys(), set("x"))
-        self.assertEqual(d.files, {"a": 42, "b":99})
+        self.assertEqual(d.files, {"a": 42, "b": 99})
 
     def test_read(self):
         data = [

@@ -23,7 +23,6 @@ class Direct:
             self.directs[d].calc_size()
             self.size += self.directs[d].size
 
-
     def select(self, pred):
         if pred(self.size):
             yield self
@@ -64,21 +63,24 @@ def read(data):
     root.calc_size()
     return root
 
+
 def get_threshold(root):
-    total=0
+    total = 0
     for td in root.threshold(100000):
         total += td.size
     return total
+
 
 def get_deletion(root):
     total_space = 70000000
     required_space = 30000000
     used_space = root.size
     delete_space = used_space - (total_space - required_space)
-    
-    sizes = [td.size for td in root.select(lambda s : s >= delete_space)]
+
+    sizes = [td.size for td in root.select(lambda s: s >= delete_space)]
     sizes.sort()
     return sizes[0]
+
 
 def readin():
     for l in sys.stdin:
