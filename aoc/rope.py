@@ -28,7 +28,7 @@ def pdiff(a, b):
 def move1d(d, dp):
     if d < 0:
         return -move1d(-d, dp)
-    return d // 2 if abs(dp) < 2 else (d//abs(d) if d != 0 else 0)
+    return d // 2 if abs(dp) < 2 else (d // abs(d) if d != 0 else 0)
 
 
 def move(diff):
@@ -50,15 +50,16 @@ def count_tail_pos(data, rlen=2):
         for _ in range(int(l[2:])):
             snake[0] = pplus(snake[0], d)
             for i in range(1, rlen):
-                diff = pdiff(snake[i-1], snake[i])
+                diff = pdiff(snake[i - 1], snake[i])
                 snake[i] = pplus(move(diff), snake[i])
             t_locs.add(snake[-1])
     return len(t_locs)
+
 
 def readin():
     for l in sys.stdin:
         yield l[:-1]
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     print(count_tail_pos(readin(), 10))

@@ -22,13 +22,14 @@ def sequence(data):
         c_new = c_new.execute(l)
         yield c_new
 
+
 def render(seq):
     cur = next(seq)
-    render=[]
-    line=""
+    render = []
+    line = ""
     for s in seq:
         for t in range(cur.t, s.t):
-            if t%40 in [cur.x - 1, cur.x, cur.x+1]:
+            if t % 40 in [cur.x - 1, cur.x, cur.x + 1]:
                 line += "#"
             else:
                 line += "."
@@ -58,14 +59,14 @@ def readin():
 
 
 def record_seq(seq):
-    total=0
+    total = 0
     for s in seq:
-       c, x = s
-       total += c*x
-       if c >= 220:
-           break
+        c, x = s
+        total += c * x
+        if c >= 220:
+            break
     return total
+
 
 if __name__ == "__main__":
     print("\n".join(render(sequence(readin()))))
-

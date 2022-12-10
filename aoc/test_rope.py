@@ -21,7 +21,7 @@ class TestRope(unittest.TestCase):
         self.assertEqual(rope.move((2, -1)), (1, -1))
         self.assertEqual(rope.move((-2, 1)), (-1, 1))
 
-        self.assertEqual(rope.move((2,2)), (1,1))
+        self.assertEqual(rope.move((2, 2)), (1, 1))
 
     def test_new_pos(self):
         h2, t2 = rope.get_new_pos((0, 0), (0, 0), (1, 0))
