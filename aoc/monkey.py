@@ -17,8 +17,8 @@ class Monkey:
         self.panic = 0
 
     def __str__(self):
-        return "i={} op={} div={} t={} f={}".format(
-            self.items, self.op, self.div, self.true_t, self.false_t
+        return "i={} op={} div={} panic={} t={} f={}".format(
+            self.items, self.op, self.div, self.panic, self.true_t, self.false_t
         )
 
     def do_op(self, old):
@@ -29,10 +29,10 @@ class Monkey:
             r = self.do_op(i)
             self.inspections += 1
             if self.panic == 0:
-                r = r//3
+                r = r // 3
             else:
-                r = r%self.panic
-            if r%self.div == 0:
+                r = r % self.panic
+            if r % self.div == 0:
                 yield self.true_t, r
             else:
                 yield self.false_t, r
@@ -61,24 +61,21 @@ class MonkeyBusiness:
         for r in range(rounds):
             for m in self.monkeys:
                 for t, v in m.business():
-                    print(str(m), t, v)
                     self.monkeys[t].catch(v)
-            if(r%100 == 0):
-                print(r)
         ins = [m.inspections for m in self.monkeys]
         ins.sort()
-        return ins[-2]*ins[-1]
+        return ins[-2] * ins[-1]
 
     def panic(self):
         p = 1
         for m in self.monkeys:
             p *= m.div
-        print(p)
         for m in self.monkeys:
-           m.panic = p 
+            m.panic = p
 
 
 if __name__ == "__main__":
     mb = MonkeyBusiness()
     mb.read_in(sys.stdin)
-    print(mb.business())
+    mb.panic()
+    print(mb.business(rounds=10000))
