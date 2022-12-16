@@ -1,110 +1,46 @@
 import sys
-import random
-
-
-class Pressure:
-    def __init__(self):
-        self.releasedPressure = 0
-
-    def releasePressure(self, pressureReleased):
-        self.releasedPressure += pressureReleased
 
 
 class Valve:
-    def __init__(self, location, flowRate, tunnels):
-        self.location = location
-        self.flowRate = flowRate
-        self.tunnels = tunnels
-        self.open = False
+    def __init__(self, txt):
+        strings = txt.strip().split(" ")
+        self.location = strings[1]
+        self.flow_rate = int(strings[4].split("=")[-1][:-1])
+        self.tunnels = [l[:-1] if "," in l else l for l in strings[9:]]
 
 
-class Player:
-    def __init__(self, ValveLocation):
-        self.location = ValveLocation
-
-    def move(self, newLocation):
-         for valve in ValveList:
-             if newLocation == valve.location: 
-                if self.location.location in valve.tunnels:
-                    self.location = valve
+def valves(data):
+    return [Valve(l) for l in data]
 
 
-def ProcessMovement(playerAction, newLocation=False):
-    for valve in ValveList:
-        if valve.open == True:
-            pressure.releasePressure(valve.flowRate)
+best_move_tbl = {}
 
-    if playerAction == "Valve":
-        player.location.open = True
-    elif playerAction == "Nothing":
-        pass
-    else:
-        player.move(newLocation)
 
-def CalculateValue(actionList):
-    if player.location.open:
-        ValveValue = 0
-    else:
-        ValveValue = player.location.flowRate
+def best_move(loc: str, valves: dict, open_set: frozenset, limit: int) -> int:
+    if limit <= 0:
+        return 0
 
-    if ValveValue > 0:
-        return "Valve"
+    key = (loc, open_set, limit)
+    if key in best_move_tbl:
+        return best_move_tbl[key]
 
-    movementOptions = actionList[2:]
-    movementValue = []
-    currentLargestValue = 0
-    currentLargestIndex = 0
-    currentIndex = 0
+    limit -= 1
+    v_loc = valves[loc]
+    moves = [best_move(adj, valves, open_set, limit) for adj in v_loc.tunnels]
+    if (v_loc.location not in open_set) and v_loc.flow_rate > 0:
+        m = limit * v_loc.flow_rate + best_move(
+            loc, valves, open_set.union([loc]), limit
+        )
+        moves.append(m)
+    mx = max(moves)
+    best_move_tbl[key] = mx
+    return mx
 
-    for option in movementOptions:
-        for valve in ValveList:
-            if option == valve.location:
-                if not valve.open:
-                    movementValue.append(valve.flowRate)
-                else:
-                    movementValue.append(0)
 
-                if currentLargestValue < movementValue[-1]:
-                    currentLargestValue = movementValue[-1]
-                    currentLargestIndex = currentIndex
-        currentIndex += 1
+def solve(in_valves, limit=30):
+    valves = {v.location: v for v in in_valves}
+    return best_move("AA", valves, frozenset(), limit)
 
-    totalmovementValue = 0
-    for i in movementValue:
-        totalmovementValue += i
 
-    if totalmovementValue == 0:
-        return movementOptions[random.randint(0, len(movementValue) -1)]
-    else:
-        return movementOptions[currentLargestIndex]
-
-ValveList = []
 if __name__ == "__main__":
-    for line in sys.stdin:
-        strings = line[:-1].split(" ")
-        location = strings[1]
-        flowRate = int(strings[4].split("=")[-1][:-1])
-        tunnels = [l[:-1] if "," in l else l for l in strings[9:]]
-        ValveList.append(Valve(location, flowRate, tunnels))
-        if location == "AA":
-            player = Player(ValveList[-1])
-
-pressure = Pressure()
-
-
-for i in range(0, 30):
-    actions = ["Nothing", "Valve"] + player.location.tunnels
-
-    print("Current Location: " + player.location.location)
-
-    whatDo = CalculateValue(actions)
-    if whatDo == "Valve":
-        ProcessMovement("Valve")
-        print("You openned the Valve!")
-    else:
-        ProcessMovement("Move", whatDo)
-        print("You moved to: " + whatDo)
-
-    print("Pressure released is: " + str(pressure.releasedPressure))
-
-
+    print(solve(valves(sys.stdin)))
