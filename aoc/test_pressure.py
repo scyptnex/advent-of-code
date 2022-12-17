@@ -4,6 +4,17 @@ from aoc import pressure
 
 
 class TestPressure(unittest.TestCase):
+
+    def test_tri(self):
+        self.assertEqual(pressure.t_len(1), 1)
+        self.assertEqual(pressure.t_len(2), 3)
+        self.assertEqual(pressure.t_len(5), 15)
+
+        self.assertEqual(pressure.t_idx(0, 0), 0)
+        self.assertEqual(pressure.t_idx(1, 0), 1)
+        self.assertEqual(pressure.t_idx(1, 1), 2)
+        self.assertEqual(pressure.t_idx(4, 3), 13)
+
     def test_valve(self):
         t = "Valve EE has flow rate=3; tunnels lead to valves FF, DD"
         v = pressure.Valve(t)
@@ -24,5 +35,6 @@ class TestPressure(unittest.TestCase):
             "Valve II has flow rate=0; tunnels lead to valves AA, JJ    ",
             "Valve JJ has flow rate=21; tunnel leads to valve II        ",
         ]
-        x = pressure.solve(pressure.valves(data))
-        self.assertEqual(x, 1651)
+        ss = pressure.SSpace(pressure.valves(data))
+        # self.assertEqual(ss.solve(), 1651)
+        self.assertEqual(ss.solve_e(), 1707)
