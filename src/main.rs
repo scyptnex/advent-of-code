@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::error::Error;
 
+mod input;
 mod problems;
 
 #[derive(Parser, Debug)]
@@ -13,7 +14,5 @@ struct Config {
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
     println!("Advent day={}", cfg.day);
-    let p = problems::get(cfg.day)?;
-    p.solve();
-    Ok(())
+    problems::solve(cfg.day)
 }

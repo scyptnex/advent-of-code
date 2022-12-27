@@ -1,32 +1,20 @@
 use std::error::Error;
-use std::fmt;
+use std::fs::File;
+
+use crate::input;
 
 mod calorie;
 mod rps;
 
-#[derive(Debug)]
-enum ChooseProblemErr {
-    Unknown(u8),
+trait Problem {
+    fn solve(&self, f: File) -> Result<(), Box<dyn Error>>;
 }
 
-impl fmt::Display for ChooseProblemErr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            ChooseProblemErr::Unknown(x) => write!(f, "Unknown day {}", x),
-        }
-    }
-}
-
-impl Error for ChooseProblemErr {}
-
-pub trait Problem {
-    fn solve(&self);
-}
-
-pub fn get(day: u8) -> Result<Box<dyn Problem>, Box<dyn Error>> {
+pub fn solve(day: u8) -> Result<(), Box<dyn Error>> {
+    let f = input::open_real_data(day)?;
     match day {
-        1 => Ok(Box::new(calorie::Calorie {})),
-        2 => Ok(Box::new(rps::Rps {})),
-        x => Err(Box::new(ChooseProblemErr::Unknown(x))),
+        1 => calorie::Calorie {}.solve(f),
+        2 => rps::Rps {}.solve(f),
+        _ => Err(format!("Unknown problem for day {day}"))?,
     }
 }
