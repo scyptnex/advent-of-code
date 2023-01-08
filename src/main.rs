@@ -13,6 +13,5 @@ struct Config {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
-    println!("Advent day={}", cfg.day);
     problems::solve(cfg.day)
 }
