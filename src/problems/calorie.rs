@@ -24,10 +24,9 @@ impl Problem for Calorie {
             }
         }
         vec.push(cur);
+        println!("{}", vec.iter().max().unwrap());
         vec.sort();
-        let a = vec.pop().unwrap();
-        println!("{}", a);
-        println!("{}", a + vec.pop().unwrap() + vec.pop().unwrap());
+        println!("{}", vec.iter().rev().take(3).sum::<i64>());
         Ok(())
     }
 }
