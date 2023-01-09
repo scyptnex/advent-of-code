@@ -10,23 +10,22 @@ impl Problem for Calorie {
     fn solve(&self, f: File) -> Result<(), Box<dyn Error>> {
         let reader = BufReader::new(f);
         let mut vec = Vec::new();
-        let mut cur: i64 = 0;
+        let mut cur = 0;
         for line in reader.lines() {
-            let v: i64 = line
-                .map(|l| if l.is_empty() { -1 } else { l.parse().unwrap() })
-                .unwrap();
-            if v == -1 {
-                vec.push(cur);
-                cur = 0;
-                continue;
-            } else {
-                cur += v;
+            match line.unwrap().parse::<u32>() {
+                Ok(x) => {
+                    cur += x;
+                }
+                Err(_) => {
+                    vec.push(cur);
+                    cur = 0;
+                }
             }
         }
         vec.push(cur);
         println!("{}", vec.iter().max().unwrap());
         vec.sort();
-        println!("{}", vec.iter().rev().take(3).sum::<i64>());
+        println!("{}", vec.iter().rev().take(3).sum::<u32>());
         Ok(())
     }
 }
