@@ -5,6 +5,7 @@ use crate::input;
 
 mod calorie;
 mod rps;
+mod rucksack;
 
 trait Problem {
     fn solve(&self, f: File) -> Result<(), Box<dyn Error>>;
@@ -15,6 +16,7 @@ pub fn solve(day: u8) -> Result<(), Box<dyn Error>> {
     match day {
         1 => calorie::Calorie {}.solve(f),
         2 => rps::Rps {}.solve(f),
+        3 => rucksack::Rucksack {}.solve(f),
         _ => Err(format!("Unknown problem for day {day}"))?,
     }
 }
