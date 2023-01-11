@@ -42,17 +42,13 @@ fn halve(s: &str) -> Vec<&str> {
 }
 
 fn common_element<T: AsRef<str>>(vs: Vec<T>) -> u8 {
-    let mut vi = vs.iter();
-    let main = vi.next().unwrap().as_ref().as_bytes();
-    let others: Vec<HashSet<&u8>> = vi
-        .map(|s| HashSet::from_iter(s.as_ref().as_bytes().iter()))
-        .collect();
-    for c in main {
-        if others.iter().all(|s| s.contains(c)) {
-            return c.clone();
-        }
-    }
-    panic!("Couldn't find the common element");
+    *vs.iter()
+        .map(|s| HashSet::from_iter(s.as_ref().as_bytes().iter().map(|c| *c)))
+        .reduce(|accum: HashSet<u8>, cur| HashSet::from_iter(accum.intersection(&cur).map(|c| *c)))
+        .unwrap()
+        .iter()
+        .next()
+        .unwrap()
 }
 
 fn score(c: u8) -> u8 {
