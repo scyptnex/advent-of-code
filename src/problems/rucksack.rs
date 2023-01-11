@@ -26,14 +26,11 @@ fn get_sum_priorities(lines: &Vec<String>) -> i32 {
 }
 
 fn get_group_priorities(lines: &Vec<String>) -> i32 {
-    let mut li = lines.iter().peekable();
-    let mut sum = 0;
-    while li.peek().is_some() {
-        // TODO smarter way for making an iterator into an iterator of triples
-        let v = vec![li.next().unwrap(), li.next().unwrap(), li.next().unwrap()];
-        sum += score(common_element(v)) as i32
-    }
-    sum
+    lines
+        .chunks(3)
+        .map(|c| common_element(c))
+        .map(|e| score(e) as i32)
+        .sum()
 }
 
 fn halve(s: &str) -> Vec<&str> {
@@ -41,10 +38,14 @@ fn halve(s: &str) -> Vec<&str> {
     vec![p, s]
 }
 
-fn common_element<T: AsRef<str>>(vs: Vec<T>) -> u8 {
-    *vs.iter()
-        .map(|s| HashSet::from_iter(s.as_ref().as_bytes().iter().map(|c| *c)))
-        .reduce(|accum: HashSet<u8>, cur| HashSet::from_iter(accum.intersection(&cur).map(|c| *c)))
+fn common_element<I, T>(vs: I) -> u8
+where
+    I: IntoIterator<Item = T>,
+    T: AsRef<str>,
+{
+    *vs.into_iter()
+        .map(|s| HashSet::from_iter(s.as_ref().as_bytes().iter().copied()))
+        .reduce(|accum: HashSet<u8>, cur| HashSet::from_iter(accum.intersection(&cur).copied()))
         .unwrap()
         .iter()
         .next()
