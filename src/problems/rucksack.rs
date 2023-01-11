@@ -29,7 +29,9 @@ fn get_group_priorities(lines: &Vec<String>) -> i32 {
     let mut li = lines.iter().peekable();
     let mut sum = 0;
     while li.peek().is_some() {
-        sum += score(common_element(li.take(3).map(|s| s.as_ref()).collect())) as i32
+        // TODO smarter way for making an iterator into an iterator of triples
+        let v = vec![li.next().unwrap(), li.next().unwrap(), li.next().unwrap()];
+        sum += score(common_element(v)) as i32
     }
     sum
 }
@@ -39,18 +41,18 @@ fn halve(s: &str) -> Vec<&str> {
     vec![p, s]
 }
 
-fn common_element(vs: Vec<&str>) -> u8 {
+fn common_element<T: AsRef<str>>(vs: Vec<T>) -> u8 {
     let mut vi = vs.iter();
-    let main = vi.next().unwrap().as_bytes();
+    let main = vi.next().unwrap().as_ref().as_bytes();
     let others: Vec<HashSet<&u8>> = vi
-        .map(|s| HashSet::from_iter(s.as_bytes().iter()))
+        .map(|s| HashSet::from_iter(s.as_ref().as_bytes().iter()))
         .collect();
     for c in main {
         if others.iter().all(|s| s.contains(c)) {
             return c.clone();
         }
     }
-    0
+    panic!("Couldn't find the common element");
 }
 
 fn score(c: u8) -> u8 {
