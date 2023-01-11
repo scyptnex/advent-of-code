@@ -52,10 +52,10 @@ fn common_element<T: AsRef<str>>(vs: Vec<T>) -> u8 {
 }
 
 fn score(c: u8) -> u8 {
-    if c < b'a' {
-        27 + c - b'A'
-    } else {
-        1 + c - b'a'
+    match c {
+        b'A'..=b'Z' => 27 + c - b'A',
+        b'a'..=b'z' => 1 + c - b'a',
+        _ => panic!("unrecognized char"),
     }
 }
 

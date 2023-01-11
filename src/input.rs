@@ -21,7 +21,6 @@ fn path_for_day(day: u8) -> Result<fs::DirEntry, Box<dyn Error>> {
 }
 
 pub fn open_real_data(day: u8) -> Result<File, Box<dyn Error>> {
-    println!("looking for {day}");
     let day_path = path_for_day(day)?;
     let f = File::open(day_path.path())?;
     Ok(f)
