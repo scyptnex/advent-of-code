@@ -13,14 +13,19 @@ trait Problem {
     fn solve(&self, f: File) -> Result<(), Box<dyn Error>>;
 }
 
+fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
+    match day {
+        1 => Some(Box::new(calorie::Calorie {})),
+        2 => Some(Box::new(rps::Rps {})),
+        3 => Some(Box::new(rucksack::Rucksack {})),
+        4 => Some(Box::new(cleanup::Cleanup {})),
+        5 => Some(Box::new(stacks::Stacks {})),
+        _ => None,
+    }
+}
+
 pub fn solve(day: u8) -> Result<(), Box<dyn Error>> {
     let f = input::open_real_data(day)?;
-    match day {
-        1 => calorie::Calorie {}.solve(f),
-        2 => rps::Rps {}.solve(f),
-        3 => rucksack::Rucksack {}.solve(f),
-        4 => cleanup::Cleanup {}.solve(f),
-        5 => stacks::Stacks {}.solve(f),
-        _ => Err(format!("Unknown problem for day {day}"))?,
-    }
+    let p = get_problem(day).ok_or_else(|| format!("Unknown problem for day {day}"))?;
+    p.solve(f)
 }
