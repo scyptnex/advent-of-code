@@ -7,6 +7,7 @@ mod calorie;
 mod cleanup;
 mod rps;
 mod rucksack;
+mod signal;
 mod stacks;
 
 trait Problem {
@@ -20,6 +21,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         3 => Some(Box::new(rucksack::Rucksack {})),
         4 => Some(Box::new(cleanup::Cleanup {})),
         5 => Some(Box::new(stacks::Stacks {})),
+        6 => Some(Box::new(signal::Signal {})),
         _ => None,
     }
 }
