@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::ops::RangeInclusive;
 
 use super::Problem;
 
@@ -15,29 +16,31 @@ impl Problem for Cleanup {
     }
 }
 
+type ElfRange = RangeInclusive<i32>;
+
 trait Tinter {
-    fn tint(&self) -> (i32, i32);
+    fn tint(&self) -> ElfRange;
 }
 
 impl Tinter for (&str, &str) {
-    fn tint(&self) -> (i32, i32) {
-        (self.0.parse().unwrap(), self.1.parse().unwrap())
+    fn tint(&self) -> ElfRange {
+        self.0.parse().unwrap()..=self.1.parse().unwrap()
     }
 }
 
-fn count_pred(lines: &Vec<String>, p: fn(&((i32, i32), (i32, i32))) -> bool) -> i32 {
+fn count_pred(lines: &Vec<String>, p: fn(&ElfRange, &ElfRange) -> bool) -> i32 {
     lines
         .iter()
         .map(|s| range_pairs(s))
-        .fold(0, |c: i32, rp| -> i32 {
-            if p(&rp) {
+        .fold(0, |c: i32, (l, r)| -> i32 {
+            if p(&l, &r) {
                 return c + 1;
             }
             c
         })
 }
 
-fn range_pairs(line: &str) -> ((i32, i32), (i32, i32)) {
+fn range_pairs(line: &str) -> (ElfRange, ElfRange) {
     let (l, r) = line.split_once(',').unwrap();
     (
         l.split_once('-').unwrap().tint(),
@@ -45,15 +48,12 @@ fn range_pairs(line: &str) -> ((i32, i32), (i32, i32)) {
     )
 }
 
-fn contains(((l1, l2), (r1, r2)): &((i32, i32), (i32, i32))) -> bool {
-    (r1 >= l1 && r2 <= l2) || (l1 >= r1 && l2 <= r2)
+fn contains(l: &ElfRange, r: &ElfRange) -> bool {
+    (l.contains(r.start()) && l.contains(r.end())) || (r.contains(l.start()) && r.contains(l.end()))
 }
 
-fn overlaps(((l1, l2), (r1, r2)): &((i32, i32), (i32, i32))) -> bool {
-    (r1 >= l1 && r1 <= l2)
-        || (r2 >= l1 && r2 <= l2)
-        || (l1 >= r1 && l1 <= r2)
-        || (l2 >= r1 && l2 <= r2)
+fn overlaps(l: &ElfRange, r: &ElfRange) -> bool {
+    l.contains(r.start()) || l.contains(r.end()) || contains(r, l)
 }
 
 #[cfg(test)]
@@ -76,6 +76,6 @@ mod tests {
 
     #[test]
     fn test_range_parse() {
-        assert_eq!(range_pairs("1-1,2-2"), ((1, 1), (2, 2)));
+        assert_eq!(range_pairs("1-1,2-2"), (1..=1, 2..=2));
     }
 }
