@@ -5,6 +5,7 @@ use crate::input;
 
 mod calorie;
 mod cleanup;
+mod problem_template;
 mod rps;
 mod rucksack;
 mod signal;
@@ -36,6 +37,7 @@ impl<T: StructuredProblem> Problem for T {
 
 fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
     match day {
+        0 => Some(Box::new(problem_template::Todo::default())),
         1 => Some(Box::new(calorie::Calorie {})),
         2 => Some(Box::new(rps::Rps {})),
         3 => Some(Box::new(rucksack::Rucksack {})),
