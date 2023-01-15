@@ -5,6 +5,7 @@ use crate::input;
 
 mod calorie;
 mod cleanup;
+mod filesys;
 mod problem_template;
 mod rps;
 mod rucksack;
@@ -44,6 +45,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         4 => Some(Box::new(cleanup::Cleanup {})),
         5 => Some(Box::new(stacks::Stacks::default())),
         6 => Some(Box::new(signal::Signal {})),
+        7 => Some(Box::new(filesys::Filesys::default())),
         _ => None,
     }
 }
