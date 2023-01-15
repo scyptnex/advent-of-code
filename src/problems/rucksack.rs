@@ -8,7 +8,7 @@ use super::Problem;
 pub struct Rucksack {}
 
 impl Problem for Rucksack {
-    fn solve(&self, f: File) -> Result<(), Box<dyn Error>> {
+    fn solve(&mut self, f: File) -> Result<(), Box<dyn Error>> {
         let data: Vec<String> = BufReader::new(f).lines().filter_map(|s| s.ok()).collect();
         println!("{}", get_sum_priorities(&data));
         println!("{}", get_group_priorities(&data));

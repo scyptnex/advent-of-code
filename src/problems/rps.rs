@@ -27,7 +27,7 @@ impl TryFrom<u8> for Move {
 pub struct Rps {}
 
 impl Problem for Rps {
-    fn solve(&self, f: File) -> Result<(), Box<dyn Error>> {
+    fn solve(&mut self, f: File) -> Result<(), Box<dyn Error>> {
         let data: Vec<String> = BufReader::new(f).lines().filter_map(|s| s.ok()).collect();
         println!("{}", data.iter().map(|s| get_score(s) as u32).sum::<u32>());
         println!(

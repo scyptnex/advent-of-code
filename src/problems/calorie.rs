@@ -7,7 +7,7 @@ use super::Problem;
 pub struct Calorie {}
 
 impl Problem for Calorie {
-    fn solve(&self, f: File) -> Result<(), Box<dyn Error>> {
+    fn solve(&mut self, f: File) -> Result<(), Box<dyn Error>> {
         let reader = BufReader::new(f);
         let mut vec = Vec::new();
         let mut cur = 0;

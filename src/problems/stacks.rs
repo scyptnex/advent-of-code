@@ -1,18 +1,33 @@
-use std::error::Error;
+use std::fmt::Display;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::str;
 
-use super::Problem;
+use super::StructuredProblem;
 
-pub struct Stacks {}
+#[derive(Default)]
+pub struct Stacks {
+    initial: Vec<String>,
+    cmds: Vec<String>,
+}
 
-impl Problem for Stacks {
-    fn solve(&self, f: File) -> Result<(), Box<dyn Error>> {
-        let (initial, cmds) = splitify(BufReader::new(f).lines().map(|s| s.unwrap()));
-        println!("{}", Pile::new(&initial).do_commands(&cmds, 9000).get_seq());
-        println!("{}", Pile::new(&initial).do_commands(&cmds, 9001).get_seq());
-        Ok(())
+impl StructuredProblem for Stacks {
+    fn ingest(&mut self, f: File) {
+        (self.initial, self.cmds) = splitify(BufReader::new(f).lines().map(|s| s.unwrap()));
+    }
+    fn solve_1(&self) -> Box<dyn Display> {
+        Box::new(
+            Pile::new(&self.initial)
+                .do_commands(&self.cmds, 9000)
+                .get_seq(),
+        )
+    }
+    fn solve_2(&self) -> Box<dyn Display> {
+        Box::new(
+            Pile::new(&self.initial)
+                .do_commands(&self.cmds, 9001)
+                .get_seq(),
+        )
     }
 }
 

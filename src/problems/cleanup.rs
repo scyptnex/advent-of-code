@@ -8,7 +8,7 @@ use super::Problem;
 pub struct Cleanup {}
 
 impl Problem for Cleanup {
-    fn solve(&self, f: File) -> Result<(), Box<dyn Error>> {
+    fn solve(&mut self, f: File) -> Result<(), Box<dyn Error>> {
         let data: Vec<String> = BufReader::new(f).lines().filter_map(|s| s.ok()).collect();
         println!("{}", count_pred(&data, contains));
         println!("{}", count_pred(&data, overlaps));

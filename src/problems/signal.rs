@@ -8,7 +8,7 @@ use super::Problem;
 pub struct Signal {}
 
 impl Problem for Signal {
-    fn solve(&self, f: File) -> Result<(), Box<dyn Error>> {
+    fn solve(&mut self, f: File) -> Result<(), Box<dyn Error>> {
         let mut data = String::new();
         BufReader::new(f).read_to_string(&mut data)?;
         println!("{}", start_of_packet(&data));
