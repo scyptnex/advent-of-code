@@ -11,6 +11,7 @@ mod rps;
 mod rucksack;
 mod signal;
 mod stacks;
+mod treehouse;
 
 trait Problem {
     fn solve(&mut self, f: File) -> Result<(), Box<dyn Error>>;
@@ -46,6 +47,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         5 => Some(Box::new(stacks::Stacks::default())),
         6 => Some(Box::new(signal::Signal {})),
         7 => Some(Box::new(filesys::Filesys::default())),
+        8 => Some(Box::new(treehouse::Treehouse::default())),
         _ => None,
     }
 }
