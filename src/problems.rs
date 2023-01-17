@@ -7,6 +7,7 @@ mod calorie;
 mod cleanup;
 mod filesys;
 mod problem_template;
+mod rope;
 mod rps;
 mod rucksack;
 mod signal;
@@ -48,6 +49,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         6 => Some(Box::new(signal::Signal {})),
         7 => Some(Box::new(filesys::Filesys::default())),
         8 => Some(Box::new(treehouse::Treehouse::default())),
+        9 => Some(Box::new(rope::Rope::default())),
         _ => None,
     }
 }
