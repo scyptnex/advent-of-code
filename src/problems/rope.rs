@@ -67,7 +67,7 @@ impl Rope {
     }
 
     fn do_rope(&self, l: usize) -> usize {
-        let mut r: Vec<Coord> = std::iter::repeat((0, 0) as Coord).take(l).collect();
+        let mut r = vec![(0, 0); l];
         let mut tails: HashSet<Coord> = HashSet::new();
         tails.insert(*r.last().unwrap());
         for m in self
