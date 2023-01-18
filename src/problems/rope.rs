@@ -14,29 +14,31 @@ enum Drc {
     R,
 }
 
-fn to_drc(s: &str) -> Drc {
-    match s {
-        "U" => Drc::U,
-        "D" => Drc::D,
-        "L" => Drc::L,
-        "R" => Drc::R,
-        _ => panic!("unable to parse as direction"),
+impl Drc {
+    fn from(s: &str) -> Self {
+        match s {
+            "U" => Drc::U,
+            "D" => Drc::D,
+            "L" => Drc::L,
+            "R" => Drc::R,
+            _ => panic!("unable to parse as direction"),
+        }
+    }
+
+    fn offset(&self) -> Coord {
+        match self {
+            Drc::U => (0, 1),
+            Drc::D => (0, -1),
+            Drc::L => (-1, 0),
+            Drc::R => (1, 0),
+        }
     }
 }
 
 type Coord = (i32, i32);
 
-fn to_offset(d: &Drc) -> Coord {
-    match d {
-        Drc::U => (0, 1),
-        Drc::D => (0, -1),
-        Drc::L => (-1, 0),
-        Drc::R => (1, 0),
-    }
-}
-
 fn cmove((x, y): &Coord, d: &Drc) -> Coord {
-    let (dx, dy) = to_offset(d);
+    let (dx, dy) = d.offset();
     (x + dx, y + dy)
 }
 
@@ -53,7 +55,7 @@ fn follow((xh, yh): &Coord, (xt, yt): &Coord) -> Coord {
 }
 
 fn parse_bit((d, a): (&str, &str)) -> (Drc, usize) {
-    (to_drc(d), a.parse().unwrap())
+    (Drc::from(d), a.parse().unwrap())
 }
 
 #[derive(Default)]
