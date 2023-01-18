@@ -5,6 +5,7 @@ use crate::input;
 
 mod calorie;
 mod cleanup;
+mod crt;
 mod filesys;
 mod problem_template;
 mod rope;
@@ -50,6 +51,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         7 => Some(Box::new(filesys::Filesys::default())),
         8 => Some(Box::new(treehouse::Treehouse::default())),
         9 => Some(Box::new(rope::Rope::default())),
+        10 => Some(Box::new(crt::Crt::default())),
         _ => None,
     }
 }

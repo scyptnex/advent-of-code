@@ -5,25 +5,25 @@ use std::io::{BufRead, BufReader};
 use super::StructuredProblem;
 
 #[derive(Default)]
-pub struct Todo {
+pub struct Crt {
     data: Vec<String>,
 }
 
-impl Todo {
+impl Crt {
     fn read<I: Iterator<Item = String>>(&mut self, i: I) {
         self.data = i.collect();
     }
 }
 
-impl StructuredProblem for Todo {
+impl StructuredProblem for Crt {
     fn ingest(&mut self, f: File) {
         self.read(BufReader::new(f).lines().map(|s| s.unwrap()));
     }
     fn solve_1(&self) -> Box<dyn Display> {
-        Box::new("Todo problem 1")
+        Box::new("TODO problem 1")
     }
     fn solve_2(&self) -> Box<dyn Display> {
-        Box::new("Todo problem 2")
+        Box::new("TODO problem 2")
     }
 }
 
@@ -32,11 +32,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_todo() {
-        let mut t = Todo::default();
+    fn test_crt() {
+        let mut t = Crt::default();
         t.read("".lines().map(|s| String::from(s)));
 
-        assert_eq!(format!("{}", t.solve_1()), "Todo problem 1");
-        assert_eq!(format!("{}", t.solve_2()), "Todo problem 2");
+        assert_eq!(format!("{}", t.solve_1()), "TODO problem 1");
+        assert_eq!(format!("{}", t.solve_2()), "TODO problem 2");
     }
 }
