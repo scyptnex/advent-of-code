@@ -10,41 +10,31 @@ enum Ins {
     Addx(i32),
 }
 
-trait Actor {
-    fn act(&mut self, t: usize, x: i32);
+struct CrtCpu<I> {
+    x: i32,
+    p: Option<i32>,
+    i: I,
 }
 
-#[derive(Default)]
-struct SigStrength {
-    ss: i32,
-}
-
-impl Actor for SigStrength {
-    fn act(&mut self, t: usize, x: i32) {
-        if t < 20 {
-            return;
+impl<'a, I: Iterator<Item = &'a Ins>> Iterator for CrtCpu<I> {
+    type Item = i32;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.p.is_some() {
+            let old_x = self.x;
+            self.x += self.p.unwrap();
+            self.p = None;
+            return Some(old_x);
         }
-        if (t - 20) % 40 != 0 {
-            return;
+        let next_i = self.i.next();
+        if next_i.is_none() {
+            return None;
         }
-        self.ss += x * t as i32
-    }
-}
-
-#[derive(Default)]
-struct Lcd {
-    display: String,
-}
-impl Actor for Lcd {
-    fn act(&mut self, t: usize, x: i32) {
-        let px: i32 = (t as i32 - 1) % 40;
-        if px == 0 && t != 1 {
-            self.display.push('\n');
-        }
-        if (px - x).abs() <= 1 {
-            self.display.push('#');
-        } else {
-            self.display.push('.');
+        match next_i.unwrap() {
+            Ins::Noop => Some(self.x),
+            Ins::Addx(v) => {
+                self.p = Some(*v);
+                Some(self.x)
+            }
         }
     }
 }
@@ -64,22 +54,11 @@ impl Crt {
             .collect();
     }
 
-    fn run(&self, a: &mut dyn Actor) {
-        let mut t = 1;
-        let mut x = 1;
-        for i in self.prog.iter() {
-            a.act(t, x);
-            match i {
-                Ins::Noop => {
-                    // Do nothing
-                }
-                Ins::Addx(v) => {
-                    t += 1;
-                    a.act(t, x);
-                    x += v;
-                }
-            }
-            t += 1;
+    fn run_iter(&self) -> CrtCpu<impl Iterator<Item = &Ins>> {
+        CrtCpu {
+            x: 1,
+            p: None,
+            i: self.prog.iter(),
         }
     }
 }
@@ -89,14 +68,35 @@ impl StructuredProblem for Crt {
         self.read(BufReader::new(f).lines().map(|s| s.unwrap()));
     }
     fn solve_1(&self) -> Box<dyn Display> {
-        let mut ss = SigStrength::default();
-        self.run(&mut ss);
-        Box::new(ss.ss)
+        Box::new(
+            self.run_iter()
+                .enumerate()
+                .skip(19)
+                .step_by(40)
+                .map(|(t, x)| (t as i32 + 1) * x)
+                .sum::<i32>(),
+        )
     }
     fn solve_2(&self) -> Box<dyn Display> {
-        let mut lcd = Lcd::default();
-        self.run(&mut lcd);
-        Box::new(lcd.display)
+        Box::new(
+            self.run_iter()
+                .enumerate()
+                .map(|(t, x)| {
+                    if (x - 1..=x + 1).contains(&(t as i32 % 40)) {
+                        (t, "#")
+                    } else {
+                        (t, ".")
+                    }
+                })
+                .map(|(t, s)| {
+                    if t % 40 == 0 && t != 0 {
+                        format!("\n{}", s)
+                    } else {
+                        s.to_string()
+                    }
+                })
+                .collect::<String>(),
+        )
     }
 }
 
@@ -266,5 +266,12 @@ noop";
 ######......######......######......####
 #######.......#######.......#######.....";
         assert_eq!(format!("{}", t.solve_2()), expected_screen);
+    }
+
+    #[test]
+    fn test_iter() {
+        let mut t = Crt::default();
+        t.read("noop\naddx 3\naddx -5".lines().map(|s| String::from(s)));
+        assert_eq!(t.run_iter().collect::<Vec<i32>>(), vec![1, 1, 1, 4, 4]);
     }
 }
