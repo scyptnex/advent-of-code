@@ -9,9 +9,15 @@ pub struct Todo {
     data: Vec<String>,
 }
 
+impl Todo {
+    fn read<I: Iterator<Item = String>>(&mut self, i: I) {
+        self.data = i.collect();
+    }
+}
+
 impl StructuredProblem for Todo {
     fn ingest(&mut self, f: File) {
-        self.data = BufReader::new(f).lines().map(|s| s.unwrap()).collect();
+        self.read(BufReader::new(f).lines().map(|s| s.unwrap()));
     }
     fn solve_1(&self) -> Box<dyn Display> {
         Box::new("TODO problem 1")
@@ -27,7 +33,9 @@ mod tests {
 
     #[test]
     fn test_todo() {
-        let t = Todo::default();
+        let mut t = Todo::default();
+        t.read("".lines().map(|s| String::from(s)));
+
         assert_eq!(format!("{}", t.solve_1()), "TODO problem 1");
         assert_eq!(format!("{}", t.solve_2()), "TODO problem 2");
     }
