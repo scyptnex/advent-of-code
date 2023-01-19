@@ -7,6 +7,7 @@ mod calorie;
 mod cleanup;
 mod crt;
 mod filesys;
+mod monkey;
 mod problem_template;
 mod rope;
 mod rps;
@@ -52,6 +53,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         8 => Some(Box::new(treehouse::Treehouse::default())),
         9 => Some(Box::new(rope::Rope::default())),
         10 => Some(Box::new(crt::Crt::default())),
+        11 => Some(Box::new(monkey::Monkey::default())),
         _ => None,
     }
 }
