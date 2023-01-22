@@ -8,7 +8,7 @@ use nom::{Finish, IResult, Parser};
 
 use super::StructuredProblem;
 
-#[derive(Debug, Eq, Ord)]
+#[derive(Debug, Eq)]
 enum Lzt {
     Val(i32),
     Seq(Vec<Lzt>),
@@ -40,37 +40,35 @@ impl FromStr for Lzt {
 
 impl PartialEq for Lzt {
     fn eq(&self, other: &Self) -> bool {
-        match self {
-            Val(sv) => match other {
-                Val(ov) => sv == ov,
-                Seq(ov) => ov.len() == 1 && self == ov.first().unwrap(),
-            },
-            Seq(sv) => match other {
-                Val(_) => sv.len() == 1 && sv.first().unwrap() == other,
-                Seq(ov) => sv == ov,
-            },
+        match (self, other) {
+            (Val(sv), Val(ov)) => sv == ov,
+            (Val(_), Seq(ov)) => ov.len() == 1 && self == ov.first().unwrap(),
+            (Seq(sv), Val(_)) => sv.len() == 1 && sv.first().unwrap() == other,
+            (Seq(sv), Seq(ov)) => sv == ov,
         }
     }
 }
 
 impl PartialOrd for Lzt {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match self {
-            Val(sv) => match other {
-                Val(ov) => sv.partial_cmp(ov),
-                Seq(_) => Seq(vec![Val(*sv)]).partial_cmp(other),
-            },
-            Seq(sv) => match other {
-                Val(ov) => self.partial_cmp(&Seq(vec![Val(*ov)])),
-                Seq(ov) => sv
-                    .iter()
-                    .zip(ov.iter())
-                    .find_map(|(si, oi)| match si.partial_cmp(oi) {
-                        Some(std::cmp::Ordering::Equal) => None,
-                        x => x,
-                    })
-                    .or_else(|| sv.len().partial_cmp(&ov.len())),
-            },
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Lzt {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match (self, other) {
+            (Val(sv), Val(ov)) => sv.cmp(ov),
+            (Val(sv), Seq(_)) => Seq(vec![Val(*sv)]).cmp(other),
+            (Seq(_), Val(ov)) => self.cmp(&Seq(vec![Val(*ov)])),
+            (Seq(sv), Seq(ov)) => sv
+                .iter()
+                .zip(ov.iter())
+                .find_map(|(si, oi)| match si.cmp(oi) {
+                    std::cmp::Ordering::Equal => None,
+                    x => Some(x),
+                })
+                .unwrap_or_else(|| sv.len().cmp(&ov.len())),
         }
     }
 }
