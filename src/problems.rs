@@ -6,6 +6,7 @@ use crate::input;
 mod calorie;
 mod cleanup;
 mod crt;
+mod distress;
 mod filesys;
 mod hill;
 mod monkey;
@@ -56,6 +57,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         10 => Some(Box::new(crt::Crt::default())),
         11 => Some(Box::new(monkey::Monkey::default())),
         12 => Some(Box::new(hill::Hill::default())),
+        13 => Some(Box::new(distress::Distress::default())),
         _ => None,
     }
 }
