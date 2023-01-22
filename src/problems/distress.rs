@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
 extern crate nom;
-use nom::Finish;
+use nom::{Finish, IResult, Parser};
 
 use super::StructuredProblem;
 
@@ -75,21 +75,16 @@ impl PartialOrd for Lzt {
     }
 }
 
-fn parse_val(input: &str) -> nom::IResult<&str, Lzt> {
-    let r = nom::character::complete::digit1(input)?;
-    Ok((r.0, Val(r.1.parse::<i32>().unwrap())))
-}
-
-fn parse_seq(input: &str) -> nom::IResult<&str, Lzt> {
-    let (input, _) = nom::character::complete::char('[')(input)?;
-    let (input, v) =
-        nom::multi::separated_list0(nom::character::complete::char(','), parse_lzt)(input)?;
-    let (input, _) = nom::character::complete::char(']')(input)?;
-    Ok((input, Seq(v)))
-}
-
-fn parse_lzt(input: &str) -> nom::IResult<&str, Lzt> {
-    nom::branch::alt((parse_val, parse_seq))(input)
+fn parse_lzt(input: &str) -> IResult<&str, Lzt> {
+    nom::branch::alt((
+        nom::character::complete::i32.map(|i| Val(i)),
+        nom::sequence::delimited(
+            nom::character::complete::char('['),
+            nom::multi::separated_list0(nom::character::complete::char(','), parse_lzt),
+            nom::character::complete::char(']'),
+        )
+        .map(|v| Seq(v)),
+    ))(input)
 }
 
 #[derive(Default)]
@@ -185,13 +180,12 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        assert_eq!(parse_val("42"), Ok(("", Val(42))));
-        assert!(parse_val("[]").is_err());
+        assert_eq!(parse_lzt("42"), Ok(("", Val(42))));
 
-        assert!(parse_seq("").is_err());
-        assert_eq!(parse_seq("[]"), Ok(("", Seq(vec![]))));
-        assert_eq!(parse_seq("[1]"), Ok(("", Seq(vec![Val(1)]))));
-        assert_eq!(parse_seq("[2,3]"), Ok(("", Seq(vec![Val(2), Val(3)]))));
+        assert!(parse_lzt("").is_err());
+        assert_eq!(parse_lzt("[]"), Ok(("", Seq(vec![]))));
+        assert_eq!(parse_lzt("[1]"), Ok(("", Seq(vec![Val(1)]))));
+        assert_eq!(parse_lzt("[2,3]"), Ok(("", Seq(vec![Val(2), Val(3)]))));
 
         assert_eq!(parse_lzt("4"), Ok(("", Val(4))));
         assert_eq!(parse_lzt("[4]"), Ok(("", Seq(vec![Val(4)]))));
