@@ -14,6 +14,7 @@ mod problem_template;
 mod rope;
 mod rps;
 mod rucksack;
+mod sand;
 mod signal;
 mod stacks;
 mod treehouse;
@@ -58,6 +59,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         11 => Some(Box::new(monkey::Monkey::default())),
         12 => Some(Box::new(hill::Hill::default())),
         13 => Some(Box::new(distress::Distress::default())),
+        14 => Some(Box::new(sand::Sand::default())),
         _ => None,
     }
 }
