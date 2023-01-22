@@ -16,9 +16,22 @@ enum Lzt {
 use Lzt::*;
 
 impl Lzt {
+    fn parse(input: &str) -> IResult<&str, Lzt> {
+        nom::branch::alt((
+            nom::character::complete::i32.map(|i| Val(i)),
+            nom::sequence::delimited(
+                nom::character::complete::char('['),
+                nom::multi::separated_list0(nom::character::complete::char(','), Lzt::parse),
+                nom::character::complete::char(']'),
+            )
+            .map(|v| Seq(v)),
+        ))(input)
+    }
+
     fn p1() -> Self {
         Seq(vec![Seq(vec![Val(2)])])
     }
+
     fn p2() -> Self {
         Seq(vec![Seq(vec![Val(6)])])
     }
@@ -28,7 +41,7 @@ impl FromStr for Lzt {
     type Err = nom::error::Error<String>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match parse_lzt(s).finish() {
+        match Lzt::parse(s).finish() {
             Ok((_, l)) => Ok(l),
             Err(nom::error::Error { input, code }) => Err(nom::error::Error {
                 input: input.to_string(),
@@ -71,18 +84,6 @@ impl Ord for Lzt {
                 .unwrap_or_else(|| sv.len().cmp(&ov.len())),
         }
     }
-}
-
-fn parse_lzt(input: &str) -> IResult<&str, Lzt> {
-    nom::branch::alt((
-        nom::character::complete::i32.map(|i| Val(i)),
-        nom::sequence::delimited(
-            nom::character::complete::char('['),
-            nom::multi::separated_list0(nom::character::complete::char(','), parse_lzt),
-            nom::character::complete::char(']'),
-        )
-        .map(|v| Seq(v)),
-    ))(input)
 }
 
 #[derive(Default)]
@@ -178,16 +179,16 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        assert_eq!(parse_lzt("42"), Ok(("", Val(42))));
+        assert_eq!(Lzt::parse("42"), Ok(("", Val(42))));
 
-        assert!(parse_lzt("").is_err());
-        assert_eq!(parse_lzt("[]"), Ok(("", Seq(vec![]))));
-        assert_eq!(parse_lzt("[1]"), Ok(("", Seq(vec![Val(1)]))));
-        assert_eq!(parse_lzt("[2,3]"), Ok(("", Seq(vec![Val(2), Val(3)]))));
+        assert!(Lzt::parse("").is_err());
+        assert_eq!(Lzt::parse("[]"), Ok(("", Seq(vec![]))));
+        assert_eq!(Lzt::parse("[1]"), Ok(("", Seq(vec![Val(1)]))));
+        assert_eq!(Lzt::parse("[2,3]"), Ok(("", Seq(vec![Val(2), Val(3)]))));
 
-        assert_eq!(parse_lzt("4"), Ok(("", Val(4))));
-        assert_eq!(parse_lzt("[4]"), Ok(("", Seq(vec![Val(4)]))));
-        assert_eq!(parse_lzt("[[4]]"), Ok(("", Seq(vec![Seq(vec![Val(4)])]))));
+        assert_eq!(Lzt::parse("4"), Ok(("", Val(4))));
+        assert_eq!(Lzt::parse("[4]"), Ok(("", Seq(vec![Val(4)]))));
+        assert_eq!(Lzt::parse("[[4]]"), Ok(("", Seq(vec![Seq(vec![Val(4)])]))));
 
         assert_eq!("[[4]]".parse(), Ok(Seq(vec![Seq(vec![Val(4)])])));
         assert_eq!(
