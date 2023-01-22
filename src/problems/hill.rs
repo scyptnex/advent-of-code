@@ -39,8 +39,8 @@ impl Hill {
     }
 
     fn adjacents<'a>(&'a self, rc: &'a RowCol) -> impl Iterator<Item = RowCol> + 'a {
-        let v: Vec<(i32, i32)> = vec![(1, 0), (-1, 0), (0, 1), (0, -1)];
-        v.into_iter()
+        [(1, 0), (-1, 0), (0, 1), (0, -1)]
+            .iter()
             .filter(|off| rc.0 as i32 >= -off.0 && rc.1 as i32 >= -off.1)
             .map(|off| (off.0 + rc.0 as i32, off.1 + rc.1 as i32))
             .map(|nc| (nc.0 as usize, nc.1 as usize))

@@ -18,7 +18,7 @@ pub struct Treehouse {
 }
 
 fn directions() -> impl Iterator<Item = Direction> {
-    vec![
+    [
         Direction::Up,
         Direction::Down,
         Direction::Left,
