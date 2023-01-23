@@ -3,6 +3,7 @@ use std::fs::File;
 
 use crate::input;
 
+mod beacon;
 mod calorie;
 mod cleanup;
 mod crt;
@@ -60,6 +61,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         12 => Some(Box::new(hill::Hill::default())),
         13 => Some(Box::new(distress::Distress::default())),
         14 => Some(Box::new(sand::Sand::default())),
+        15 => Some(Box::new(beacon::Beacon::default())),
         _ => None,
     }
 }
