@@ -11,6 +11,7 @@ mod distress;
 mod filesys;
 mod hill;
 mod monkey;
+mod pressure;
 mod problem_template;
 mod rope;
 mod rps;
@@ -62,6 +63,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         13 => Some(Box::new(distress::Distress::default())),
         14 => Some(Box::new(sand::Sand::default())),
         15 => Some(Box::new(beacon::Beacon::default())),
+        16 => Some(Box::new(pressure::Pressure::default())),
         _ => None,
     }
 }
