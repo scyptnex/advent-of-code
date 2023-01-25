@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::Display;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -6,68 +6,6 @@ use std::io::{BufRead, BufReader};
 extern crate regex;
 
 use super::StructuredProblem;
-
-struct Rec {
-    node_c: usize,
-    pressure_stride: usize,
-    t_max: usize,
-    res: Vec<Option<usize>>,
-}
-
-impl Rec {
-    fn new(p: &Pressure, t_max: usize) -> Self {
-        let node_c = p.node_idx.len();
-        let pressure_stride = 1 << p.pressure.len();
-        Rec {
-            node_c,
-            pressure_stride,
-            t_max,
-            res: vec![None; node_c * pressure_stride * t_max],
-        }
-    }
-    fn new_e(p: &Pressure, t_max: usize) -> Self {
-        let node_c = p.node_idx.len();
-        let pressure_stride = 1 << p.pressure.len();
-        dbg!(node_c * node_c * pressure_stride * t_max);
-        Rec {
-            node_c,
-            pressure_stride,
-            t_max,
-            res: vec![None; node_c * node_c * pressure_stride * t_max],
-        }
-    }
-
-    fn memo(&mut self, n: usize, r: usize, t: usize, released: usize) -> usize {
-        let idx = self.idx(n, r, t);
-        self.res[idx] = Some(released);
-        released
-    }
-
-    fn get(&self, n: usize, r: usize, t: usize) -> Option<usize> {
-        self.res[self.idx(n, r, t)]
-    }
-
-    fn idx(&self, n: usize, r: usize, t: usize) -> usize {
-        n * (self.pressure_stride * self.t_max) + r * self.t_max + t
-    }
-
-    fn memo_e(&mut self, n: usize, e: usize, r: usize, t: usize, released: usize) -> usize {
-        let idx = self.idx_e(n, e, r, t);
-        self.res[idx] = Some(released);
-        released
-    }
-
-    fn get_e(&self, n: usize, e: usize, r: usize, t: usize) -> Option<usize> {
-        self.res[self.idx_e(n, e, r, t)]
-    }
-
-    fn idx_e(&self, n: usize, e: usize, r: usize, t: usize) -> usize {
-        n * (self.node_c * self.pressure_stride * self.t_max)
-            + e * (self.pressure_stride * self.t_max)
-            + r * self.t_max
-            + t
-    }
-}
 
 fn pressurize(pidx: usize, cur: usize) -> usize {
     cur | (1 << pidx)
@@ -83,6 +21,8 @@ pub struct Pressure {
     adjacents: Vec<Vec<usize>>,
     pressure_idx: Vec<Option<usize>>,
     pressure: Vec<usize>,
+    p_adj: Vec<Vec<usize>>,
+    opened_cfgs: usize,
 }
 
 impl Pressure {
@@ -97,6 +37,53 @@ impl Pressure {
                 cap[3].split(", ").collect(),
             )
         }
+        for (i, p) in self
+            .pressure_idx
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| p.is_some())
+            .map(|(i, p)| (i, p.unwrap()))
+        {
+            self.p_adj[p] = self.get_distances(i);
+        }
+    }
+
+    fn get_distances(&self, idx: usize) -> Vec<usize> {
+        let mut d = 0;
+        let mut frontier: Vec<usize> = Vec::from([idx]);
+        let mut visited: Vec<bool> = vec![false; self.node_idx.len()];
+        let mut distances: Vec<usize> = vec![0; self.node_idx.len()];
+        visited[idx] = true;
+        loop {
+            for f in frontier.iter() {
+                distances[*f] = d;
+            }
+            let new_frontier: HashSet<usize> = frontier
+                .iter()
+                .flat_map(|f| self.adjacents[*f].iter())
+                .filter(|nf| !visited[**nf])
+                .copied()
+                .collect();
+            if new_frontier.is_empty() {
+                break;
+            }
+            frontier = Vec::from_iter(new_frontier.into_iter());
+            for f in frontier.iter() {
+                visited[*f] = true;
+            }
+            d += 1;
+        }
+        (0..self.pressure.len())
+            .map(|pidx| {
+                self.pressure_idx
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, px)| px.map(|p| p == pidx).unwrap_or(false))
+                    .next()
+                    .unwrap()
+            })
+            .map(|(i, _)| distances[i])
+            .collect()
     }
 
     fn ingest(&mut self, node: &str, pressure: usize, adj: Vec<&str>) {
@@ -104,9 +91,11 @@ impl Pressure {
         let adj = adj.iter().map(|s| self.make_node(s)).collect();
         self.adjacents[idx] = adj;
 
-        if pressure != 0 {
+        if pressure != 0 || node == "AA" {
             self.pressure_idx[idx] = Some(self.pressure.len());
             self.pressure.push(pressure);
+            self.p_adj.push(Vec::new());
+            self.opened_cfgs = 1 << self.pressure.len();
         }
     }
 
@@ -119,105 +108,45 @@ impl Pressure {
         self.node_idx[node]
     }
 
-    fn find_best(&self, max_t: usize) -> usize {
-        let mut r = Rec::new(self, max_t);
-        self.best(&mut r, self.node_idx["AA"], 0, max_t)
+    fn find_best(&self) -> usize {
+        let start_idx = self.pressure_idx[self.node_idx["AA"]].unwrap();
+        self.best(start_idx, 30, 0)
     }
 
-    fn best(&self, r: &mut Rec, cur_idx: usize, released: usize, t_remaining: usize) -> usize {
-        if t_remaining == 0 {
+    fn best(&self, idx: usize, t_left: usize, opened: usize) -> usize {
+        //dbg!(idx, t_left, opened);
+        if opened == self.opened_cfgs - 1 {
             return 0;
         }
-        if let Some(x) = r.get(cur_idx, released, t_remaining) {
-            return x;
-        }
-        let mut options: Vec<usize> = Vec::new();
-        for adj in self.adjacents[cur_idx].iter() {
-            options.push(self.best(r, *adj, released, t_remaining - 1));
-        }
-        if let Some(pidx) = self.pressure_idx[cur_idx] {
-            if !is_pressurized(pidx, released) {
-                let will_release = (t_remaining - 1) * self.pressure[pidx];
-                let next_move = self.best(r, cur_idx, pressurize(pidx, released), t_remaining - 1);
-                options.push(will_release + next_move);
+        let mut mx = 0;
+        for nxt in 0..self.pressure.len() {
+            if is_pressurized(nxt, opened) {
+                continue;
             }
+            let t_req = self.p_adj[idx][nxt] + 1;
+            if t_req > t_left {
+                continue;
+            }
+            let new_t = t_left - t_req;
+            let val = new_t * self.pressure[nxt];
+            let tot = val + self.best(nxt, new_t, pressurize(nxt, opened));
+            mx = mx.max(tot);
         }
-        r.memo(
-            cur_idx,
-            released,
-            t_remaining,
-            *options.iter().max().unwrap(),
-        )
+        mx
     }
 
-    fn find_best_e(&self, max_t: usize) -> usize {
-        let mut r = Rec::new_e(self, max_t);
-        self.best_e(&mut r, self.node_idx["AA"], self.node_idx["AA"], 0, max_t)
-    }
-
-    fn best_e(
-        &self,
-        r: &mut Rec,
-        cur_idx: usize,
-        e_idx: usize,
-        released: usize,
-        t_remaining: usize,
-    ) -> usize {
-        if t_remaining == 0 {
-            return 0;
-        }
-        if let Some(x) = r.get_e(cur_idx, e_idx, released, t_remaining) {
-            return x;
-        }
-        let mut options: Vec<usize> = Vec::new();
-        // i move
-        for adj in self.adjacents[cur_idx].iter() {
-            for e_adj in self.adjacents[e_idx].iter() {
-                options.push(self.best_e(r, *adj, *e_adj, released, t_remaining - 1));
+    fn find_best_e(&self) -> usize {
+        let mut mx = 0;
+        let start_idx = self.pressure_idx[self.node_idx["AA"]].unwrap();
+        for h_opens in 0..self.opened_cfgs {
+            if h_opens % 1000 == 0 {
+                println!("{}/{}", h_opens, self.opened_cfgs);
             }
-            if let Some(epidx) = self.pressure_idx[e_idx] {
-                if !is_pressurized(epidx, released) {
-                    let will_release = (t_remaining - 1) * self.pressure[epidx];
-                    let next_move =
-                        self.best_e(r, *adj, e_idx, pressurize(epidx, released), t_remaining - 1);
-                    options.push(will_release + next_move);
-                }
-            }
+            let e_opens = (!h_opens) & (self.opened_cfgs - 1);
+            let val = self.best(start_idx, 26, h_opens) + self.best(start_idx, 26, e_opens);
+            mx = mx.max(val);
         }
-        // i open
-        if let Some(pidx) = self.pressure_idx[cur_idx] {
-            if !is_pressurized(pidx, released) {
-                let will_release = (t_remaining - 1) * self.pressure[pidx];
-                let new_pressurized = pressurize(pidx, released);
-                for e_adj in self.adjacents[e_idx].iter() {
-                    options.push(
-                        self.best_e(r, cur_idx, *e_adj, new_pressurized, t_remaining - 1)
-                            + will_release,
-                    );
-                }
-                // both i and elephant open
-                if let Some(epidx) = self.pressure_idx[e_idx] {
-                    if epidx != pidx && !is_pressurized(epidx, new_pressurized) {
-                        let e_will_release = (t_remaining - 1) * self.pressure[epidx];
-                        let next_move = self.best_e(
-                            r,
-                            cur_idx,
-                            e_idx,
-                            pressurize(epidx, new_pressurized),
-                            t_remaining - 1,
-                        );
-                        options.push(will_release + next_move + e_will_release);
-                    }
-                }
-            }
-        }
-        r.memo_e(
-            cur_idx,
-            e_idx,
-            released,
-            t_remaining,
-            *options.iter().max().unwrap(),
-        )
+        mx
     }
 }
 
@@ -226,10 +155,10 @@ impl StructuredProblem for Pressure {
         self.read(BufReader::new(f).lines().map(|s| s.unwrap()));
     }
     fn solve_1(&self) -> Box<dyn Display> {
-        Box::new(self.find_best(30))
+        Box::new(self.find_best())
     }
     fn solve_2(&self) -> Box<dyn Display> {
-        Box::new(self.find_best_e(26))
+        Box::new(self.find_best_e())
     }
 }
 
@@ -269,29 +198,26 @@ Valve JJ has flow rate=21; tunnel leads to valve II"
     }
 
     #[test]
+    fn test_p_adj() {
+        let t = data();
+        let exp: Vec<Vec<usize>> = Vec::new();
+        for i in 0..exp.len() {
+            assert_eq!(exp[i][i], 0);
+        }
+    }
+
+    #[test]
     fn test_parse() {
         let t = data();
         let aa = t.node_idx.get("AA");
         assert!(aa.is_some());
         assert_eq!(t.adjacents[*aa.unwrap()].len(), 3);
-        assert_eq!(t.pressure_idx[*aa.unwrap()], None);
 
+        assert_eq!(t.pressure_idx[t.node_idx["GG"]], None);
         assert_ne!(t.pressure_idx[t.node_idx["HH"]], None);
         assert_eq!(t.pressure[t.pressure_idx[t.node_idx["HH"]].unwrap()], 22);
-    }
 
-    #[test]
-    fn test_rec() {
-        let t = data();
-        let mut r = Rec::new(&t, 30);
-        assert_eq!(r.t_max, 30);
-        assert_eq!(r.node_c, 10);
-        assert_eq!(r.pressure_stride, 64);
-        assert_eq!(r.res.len(), 30 * 10 * 64);
-
-        assert_eq!(r.get(0, 0, 0), None);
-        r.memo(0, 0, 0, 1);
-        assert_eq!(r.get(0, 0, 0), Some(1));
+        assert_eq!(t.opened_cfgs, 128); //  6 valves with pressure and 1 AA
     }
 
     #[test]
