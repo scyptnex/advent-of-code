@@ -19,6 +19,7 @@ mod rucksack;
 mod sand;
 mod signal;
 mod stacks;
+mod tetris;
 mod treehouse;
 
 trait Problem {
@@ -64,6 +65,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         14 => Some(Box::new(sand::Sand::default())),
         15 => Some(Box::new(beacon::Beacon::default())),
         16 => Some(Box::new(pressure::Pressure::default())),
+        17 => Some(Box::new(tetris::Tetris::default())),
         _ => None,
     }
 }
