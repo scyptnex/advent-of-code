@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -42,15 +43,6 @@ impl VectorColumn {
         self.accomodate(piece.1);
         self.col[piece.1][piece.0] = true;
     }
-
-    fn dump(&self) -> String {
-        self.col
-            .iter()
-            .rev()
-            .map(|s| s.iter().map(|b| if *b { '#' } else { '.' }).collect())
-            .reduce(|s1, s2| format!("{}\n{}", s1, s2))
-            .unwrap_or(String::new())
-    }
 }
 
 impl Column for VectorColumn {
@@ -72,30 +64,6 @@ impl Column for VectorColumn {
         }
     }
 }
-
-// struct WindowColumn {
-//     window: [[bool; 7]; 100],
-//     win_cycle: usize,
-//     win_height: usize,
-//     win_top: usize,
-// }
-//
-// impl Column {
-//     fn new() -> Self {
-//         let mut window = [[false; 7]; 100];
-//         window[0] = [true; 7];
-//         Column {
-//             window,
-//             win_cycle: 0,
-//             win_height: 0,
-//             win_top: 0,
-//         }
-//     }
-//
-//     fn tower_height(&self) -> usize {
-//         self.win_height + (self.win_top - self.win_cycle)
-//     }
-// }
 
 fn blow(
     c: &impl Column,
@@ -146,6 +114,21 @@ fn drop(c: &mut impl Column, cur_block: usize, cur_wind: usize, t: &Tetris) -> u
     wind
 }
 
+fn project(rcd: &Rcd, nv: &Vec<(usize, usize)>, target: usize) -> usize {
+    let period = nv[3].0 - nv[2].0;
+    let g_period = nv[3].1 - nv[2].1;
+
+    let rdr = target - nv[2].0;
+    let cycles = rdr / period;
+    let rem = (rdr % period) + nv[2].0;
+
+    let has_rem = rcd
+        .values()
+        .find_map(|v| v.iter().find(|(r, _)| *r == rem))
+        .unwrap();
+    has_rem.1 + g_period * cycles
+}
+
 #[derive(Default)]
 pub struct Tetris {
     data: String,
@@ -173,6 +156,8 @@ impl Tetris {
     }
 }
 
+type Rcd = HashMap<(usize, usize), Vec<(usize, usize)>>;
+
 impl StructuredProblem for Tetris {
     fn ingest(&mut self, f: File) {
         self.read(BufReader::new(f).lines().map(|s| s.unwrap()));
@@ -181,8 +166,23 @@ impl StructuredProblem for Tetris {
         Box::new(self.height_after(2022))
     }
     fn solve_2(&self) -> Box<dyn Display> {
-        println!("{} % 5 = {}", self.data.len(), self.data.len() % 5);
-        Box::new("Tetris problem 2")
+        let mut rcd: Rcd = Rcd::new();
+        let mut c = VectorColumn::default();
+        let mut w = 0;
+        for r in 0.. {
+            let k = (w % self.data.len(), r % 5);
+            if !rcd.contains_key(&k) {
+                rcd.insert(k, Vec::new());
+            }
+            let nv = rcd.get_mut(&k).unwrap();
+            nv.push((r, c.tower_height()));
+            if nv.len() > 3 {
+                return Box::new(project(&rcd, rcd.get(&k).unwrap(), 1000000000000));
+            }
+
+            w = drop(&mut c, r, w, self);
+        }
+        panic!();
     }
 }
 
@@ -204,7 +204,7 @@ mod tests {
     fn test_answer() {
         let t = data();
         assert_eq!(format!("{}", t.solve_1()), "3068");
-        assert_eq!(format!("{}", t.solve_2()), "Tetris problem 2");
+        assert_eq!(format!("{}", t.solve_2()), "1514285714288");
     }
 
     #[test]
