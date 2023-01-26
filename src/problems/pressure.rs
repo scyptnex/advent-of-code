@@ -198,15 +198,6 @@ Valve JJ has flow rate=21; tunnel leads to valve II"
     }
 
     #[test]
-    fn test_p_adj() {
-        let t = data();
-        let exp: Vec<Vec<usize>> = Vec::new();
-        for i in 0..exp.len() {
-            assert_eq!(exp[i][i], 0);
-        }
-    }
-
-    #[test]
     fn test_parse() {
         let t = data();
         let aa = t.node_idx.get("AA");
