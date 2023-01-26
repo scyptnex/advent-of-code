@@ -4,6 +4,7 @@ use std::fs::File;
 use crate::input;
 
 mod beacon;
+mod blob;
 mod calorie;
 mod cleanup;
 mod crt;
@@ -66,6 +67,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         15 => Some(Box::new(beacon::Beacon::default())),
         16 => Some(Box::new(pressure::Pressure::default())),
         17 => Some(Box::new(tetris::Tetris::default())),
+        18 => Some(Box::new(blob::Blob::default())),
         _ => None,
     }
 }
