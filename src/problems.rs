@@ -14,6 +14,7 @@ mod hill;
 mod monkey;
 mod pressure;
 mod problem_template;
+mod robots;
 mod rope;
 mod rps;
 mod rucksack;
@@ -68,6 +69,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         16 => Some(Box::new(pressure::Pressure::default())),
         17 => Some(Box::new(tetris::Tetris::default())),
         18 => Some(Box::new(blob::Blob::default())),
+        19 => Some(Box::new(robots::Robots::default())),
         _ => None,
     }
 }
