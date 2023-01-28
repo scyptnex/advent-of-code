@@ -10,6 +10,7 @@ mod cleanup;
 mod crt;
 mod distress;
 mod filesys;
+mod gps;
 mod hill;
 mod monkey;
 mod pressure;
@@ -70,6 +71,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         17 => Some(Box::new(tetris::Tetris::default())),
         18 => Some(Box::new(blob::Blob::default())),
         19 => Some(Box::new(robots::Robots::default())),
+        20 => Some(Box::new(gps::Gps::default())),
         _ => None,
     }
 }
