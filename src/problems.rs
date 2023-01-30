@@ -12,6 +12,7 @@ mod distress;
 mod filesys;
 mod gps;
 mod hill;
+mod maze;
 mod mmath;
 mod monkey;
 mod pressure;
@@ -74,6 +75,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         19 => Some(Box::new(robots::Robots::default())),
         20 => Some(Box::new(gps::Gps::default())),
         21 => Some(Box::new(mmath::MMath::default())),
+        22 => Some(Box::new(maze::Maze::default())),
         _ => None,
     }
 }
