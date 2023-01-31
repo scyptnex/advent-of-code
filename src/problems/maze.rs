@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -31,6 +32,85 @@ fn warp_inside(d: usize, range: RangeInclusive<usize>, go_positive: bool) -> usi
             }
         }
     }
+}
+
+fn adjacent(cube: &Vec<Vec<bool>>, r: usize, c: usize, f: &Facing) -> Option<(usize, usize)> {
+    let (r_pos, r_neg, c_pos, c_neg) = match f {
+        Right => (0, 0, 1, 0),
+        Down => (1, 0, 0, 0),
+        Left => (0, 0, 0, 1),
+        Up => (0, 1, 0, 0),
+    };
+
+    (r + r_pos)
+        .checked_sub(r_neg)
+        .and_then(|new_r| (c + c_pos).checked_sub(c_neg).map(|new_c| (new_r, new_c)))
+        .filter(|(new_r, new_c)| {
+            cube.len() > *new_r && cube[*new_r].len() > *new_c && cube[*new_r][*new_c]
+        })
+}
+
+fn fold_cube(cube: Vec<Vec<bool>>) -> Vec<Vec<[(usize, usize, Facing); 4]>> {
+    let faces: Vec<(usize, usize)> = cube
+        .iter()
+        .enumerate()
+        .flat_map(|(row_i, row)| {
+            row.iter()
+                .enumerate()
+                .filter_map(move |(col_i, val)| if *val { Some((row_i, col_i)) } else { None })
+        })
+        .collect();
+    assert!(faces.len() == 6);
+
+    let mut scratch: HashMap<(usize, usize, Facing), (usize, usize, Facing)> = HashMap::new();
+    for f in &faces {
+        for adj in [Right, Down, Left, Up] {
+            if let Some((ar, ac)) = adjacent(&cube, f.0, f.1, &adj) {
+                scratch.insert((f.0, f.1, adj), (ar, ac, adj.clockwise().clockwise()));
+            }
+        }
+    }
+
+    while scratch.len() != 24 {
+        for f in &faces {
+            for d in [Right, Down, Left, Up] {
+                let d_clock = d.clockwise();
+                let d_adj = scratch.get(&(f.0, f.1, d));
+                let d_clock_adj = scratch.get(&(f.0, f.1, d_clock));
+                if d_adj.is_none() || d_clock_adj.is_none() {
+                    continue;
+                }
+                let d_new = d_adj
+                    .map(|(r, c, h)| (*r, *c, h.counter_clockwise()))
+                    .unwrap()
+                    .clone();
+                let d_clock_new = d_clock_adj
+                    .map(|(r, c, h)| (*r, *c, h.clockwise()))
+                    .unwrap();
+
+                let d_clock_old = scratch.insert(d_new, d_clock_new);
+                if d_clock_old.is_some() {
+                    assert_eq!(d_clock_old.unwrap(), d_clock_new);
+                }
+                scratch.insert(d_clock_new, d_new);
+            }
+        }
+    }
+
+    (0..cube.len())
+        .map(|r| {
+            (0..cube[r].len())
+                .map(|c| {
+                    [
+                        scratch.remove(&(r, c, Right)).unwrap_or((99, 99, Right)),
+                        scratch.remove(&(r, c, Down)).unwrap_or((99, 99, Right)),
+                        scratch.remove(&(r, c, Left)).unwrap_or((99, 99, Right)),
+                        scratch.remove(&(r, c, Up)).unwrap_or((99, 99, Right)),
+                    ]
+                })
+                .collect()
+        })
+        .collect()
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -79,7 +159,7 @@ impl Seq {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 enum Facing {
     Right,
     Down,
@@ -117,6 +197,7 @@ struct Hdr {
     row: usize,
     col: usize,
     facing: Facing,
+    warps: Option<(usize, Vec<Vec<[(usize, usize, Facing); 4]>>)>,
 }
 
 impl Hdr {
@@ -125,6 +206,7 @@ impl Hdr {
             row: 0,
             col: *maze.x_bounds(0).start(),
             facing: Right,
+            warps: None,
         }
     }
 
@@ -134,13 +216,93 @@ impl Hdr {
 
     fn go_forward(&mut self, maze: &Maze, steps: usize) {
         for _ in 0..steps {
-            if !self.next_step(maze) {
+            if self.warps.is_some() {
+                if !self.next_step_warps(maze) {
+                    break;
+                }
+            } else if !self.next_step_no_warps(maze) {
                 break;
             }
         }
     }
 
-    fn next_step(&mut self, maze: &Maze) -> bool {
+    fn warp(&self) -> (usize, usize, Facing) {
+        let side_len = self.warps.as_ref().unwrap().0;
+        let (cube_r, cube_c) = (self.row / side_len, self.col / side_len);
+        let next = self.warps.as_ref().unwrap().1[cube_r][cube_c][self.facing.score()];
+
+        let distance_on_left = match self.facing {
+            Right => self.row % side_len,
+            Down => side_len - (self.col % side_len) - 1,
+            Left => side_len - (self.row % side_len) - 1,
+            Up => self.col % side_len,
+        };
+
+        match next.2 {
+            Right => (
+                (next.0 + 1) * side_len - distance_on_left - 1,
+                (next.1 + 1) * side_len - 1,
+                Left,
+            ),
+            Down => (
+                (next.0 + 1) * side_len - 1,
+                next.1 * side_len + distance_on_left,
+                Up,
+            ),
+            Left => (
+                next.0 * side_len + distance_on_left,
+                next.1 * side_len,
+                Right,
+            ),
+            Up => (
+                next.0 * side_len,
+                (next.1 + 1) * side_len - distance_on_left - 1,
+                Down,
+            ),
+        }
+    }
+
+    fn next_step_warps(&mut self, maze: &Maze) -> bool {
+        let side_len = self.warps.as_ref().unwrap().0;
+        let potential = match self.facing {
+            Right => {
+                if self.col % side_len == side_len - 1 {
+                    self.warp()
+                } else {
+                    (self.row, self.col + 1, Right)
+                }
+            }
+            Down => {
+                if self.row % side_len == side_len - 1 {
+                    self.warp()
+                } else {
+                    (self.row + 1, self.col, Down)
+                }
+            }
+            Left => {
+                if self.col % side_len == 0 {
+                    self.warp()
+                } else {
+                    (self.row, self.col - 1, Left)
+                }
+            }
+            Up => {
+                if self.row % side_len == 0 {
+                    self.warp()
+                } else {
+                    (self.row - 1, self.col, Up)
+                }
+            }
+        };
+        if maze.data[potential.0][potential.1] != Open {
+            false
+        } else {
+            (self.row, self.col, self.facing) = potential;
+            true
+        }
+    }
+
+    fn next_step_no_warps(&mut self, maze: &Maze) -> bool {
         let (r, c) = (self.row, self.col);
         let potential = match self.facing {
             Right => (r, warp_inside(c, maze.x_bounds(r), true)),
@@ -205,6 +367,22 @@ impl Maze {
                 }),
         )
     }
+
+    fn side_len(&self) -> usize {
+        (0..self.data.len())
+            .map(|i| self.x_bounds(i))
+            .map(|r| r.end() - r.start() + 1)
+            .min()
+            .unwrap()
+    }
+
+    fn as_unit_cube(&self) -> Vec<Vec<bool>> {
+        let sl = self.side_len();
+        (0..self.data.len() / sl)
+            .map(|i| &self.data[i * sl])
+            .map(|v| v.chunks(sl).map(|c| c[0] != Nothing).collect())
+            .collect()
+    }
 }
 
 impl StructuredProblem for Maze {
@@ -219,7 +397,12 @@ impl StructuredProblem for Maze {
         Box::new(h.score())
     }
     fn solve_2(&self) -> Box<dyn Display> {
-        Box::new("Maze problem 2")
+        let mut h = Hdr::begin(&self);
+        h.warps = Some((self.side_len(), fold_cube(self.as_unit_cube())));
+        for m in &self.seq {
+            h.act(self, &m);
+        }
+        Box::new(h.score())
     }
 }
 
@@ -251,10 +434,31 @@ mod tests {
     }
 
     #[test]
+    fn test_side() {
+        let t = data();
+        assert_eq!(t.side_len(), 4);
+
+        assert_eq!(
+            t.as_unit_cube(),
+            vec![
+                vec![false, false, true],
+                vec![true, true, true],
+                vec![false, false, true, true],
+            ]
+        );
+
+        let c = fold_cube(t.as_unit_cube());
+        assert_eq!(c[2][3][Left.score()], (2, 2, Right));
+        assert_eq!(c[0][2][Down.score()], (1, 2, Up));
+
+        assert_eq!(c[1][1][Up.score()], (0, 2, Left));
+    }
+
+    #[test]
     fn test_todo() {
         let t = data();
         assert_eq!(format!("{}", t.solve_1()), "6032");
-        assert_eq!(format!("{}", t.solve_2()), "Maze problem 2");
+        assert_eq!(format!("{}", t.solve_2()), "5031");
     }
 
     #[test]
@@ -273,6 +477,7 @@ mod tests {
             row: 0,
             col: 8,
             facing: Right,
+            warps: None,
         };
         hdr.act(&maze, &Forward(5));
         assert_eq!(hdr.col, 10);

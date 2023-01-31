@@ -254,7 +254,7 @@ Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsid
 
     #[test]
     fn test_robots() {
-        //let t = data();
+        let _t = data();
         //assert_eq!(format!("{}", t.solve_1()), "33");
         //assert_eq!(t.data[0].most_geodes(32), 56);
         //assert_eq!(t.data[1].most_geodes(32), 62);
