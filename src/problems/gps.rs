@@ -5,38 +5,16 @@ use std::io::{BufRead, BufReader};
 use super::StructuredProblem;
 
 fn mix2(v: &Vec<i64>, times: usize, dc: i64) -> Vec<i64> {
-    let len = v.len();
     let mut vm: Vec<(usize, i64)> = v.iter().map(|i| i * dc).enumerate().collect();
-
     for _ in 0..times {
-        for i in 0..len {
-            let cur = vm.iter().enumerate().find(|(_, (x, _))| *x == i).unwrap();
-            let mut mvmnt = cur.1 .1 % (len as i64 - 1);
-            let mut cidx = cur.0;
-            while mvmnt != 0 {
-                let nidx = if mvmnt > 0 {
-                    mvmnt -= 1;
-                    if cidx == len - 1 {
-                        0
-                    } else {
-                        cidx + 1
-                    }
-                } else {
-                    mvmnt += 1;
-                    if cidx == 0 {
-                        len - 1
-                    } else {
-                        cidx - 1
-                    }
-                };
-                let tmp = vm[nidx];
-                vm[nidx] = vm[cidx];
-                vm[cidx] = tmp;
-                cidx = nidx;
-            }
+        for i in 0..v.len() {
+            let cidx = vm.iter().position(|(x, _)| *x == i).unwrap();
+            let itm = vm.remove(cidx);
+            let mvmnt = itm.1.rem_euclid(vm.len() as i64);
+            let new_idx = (mvmnt as usize + cidx) % vm.len();
+            vm.insert(new_idx, itm);
         }
     }
-
     vm.into_iter().map(|(_, i)| i).collect()
 }
 
