@@ -23,6 +23,7 @@ mod rps;
 mod rucksack;
 mod sand;
 mod signal;
+mod spread;
 mod stacks;
 mod tetris;
 mod treehouse;
@@ -76,6 +77,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         20 => Some(Box::new(gps::Gps::default())),
         21 => Some(Box::new(mmath::MMath::default())),
         22 => Some(Box::new(maze::Maze::default())),
+        23 => Some(Box::new(spread::Spread::default())),
         _ => None,
     }
 }
