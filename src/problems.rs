@@ -4,6 +4,7 @@ use std::fs::File;
 use crate::input;
 
 mod beacon;
+mod blizzard;
 mod blob;
 mod calorie;
 mod cleanup;
@@ -78,6 +79,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         21 => Some(Box::new(mmath::MMath::default())),
         22 => Some(Box::new(maze::Maze::default())),
         23 => Some(Box::new(spread::Spread::default())),
+        24 => Some(Box::new(blizzard::Blizzard::default())),
         _ => None,
     }
 }
