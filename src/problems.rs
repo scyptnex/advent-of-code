@@ -24,6 +24,7 @@ mod rps;
 mod rucksack;
 mod sand;
 mod signal;
+mod snafu;
 mod spread;
 mod stacks;
 mod tetris;
@@ -80,6 +81,7 @@ fn get_problem(day: u8) -> Option<Box<dyn Problem>> {
         22 => Some(Box::new(maze::Maze::default())),
         23 => Some(Box::new(spread::Spread::default())),
         24 => Some(Box::new(blizzard::Blizzard::default())),
+        25 => Some(Box::new(snafu::Snafu::default())),
         _ => None,
     }
 }
