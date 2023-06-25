@@ -114,19 +114,19 @@ fn drop(c: &mut impl Column, cur_block: usize, cur_wind: usize, t: &Tetris) -> u
     wind
 }
 
-fn project(rcd: &Rcd, nv: &Vec<(usize, usize)>, target: usize) -> usize {
-    let period = nv[3].0 - nv[2].0;
-    let g_period = nv[3].1 - nv[2].1;
+fn project(rcd: &Rcd, nv: &Vec<(usize, usize)>, target: u64) -> u64 {
+    let period = (nv[3].0 - nv[2].0) as u64;
+    let g_period = (nv[3].1 - nv[2].1) as u64;
 
-    let rdr = target - nv[2].0;
-    let cycles = rdr / period;
-    let rem = (rdr % period) + nv[2].0;
+    let rdr: u64 = target - (nv[2].0 as u64);
+    let cycles: usize = (rdr / period).try_into().unwrap();
+    let rem: usize = TryInto::<usize>::try_into(rdr % period).unwrap() + nv[2].0;
 
     let has_rem = rcd
         .values()
         .find_map(|v| v.iter().find(|(r, _)| *r == rem))
         .unwrap();
-    has_rem.1 + g_period * cycles
+    has_rem.1 as u64 + g_period * cycles as u64
 }
 
 #[derive(Default)]
