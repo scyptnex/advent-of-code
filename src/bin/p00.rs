@@ -10,10 +10,10 @@ impl Prob {
 
 impl Problem<u64, u64> for Prob {
     fn solve_1(&self, input: &str) -> u64 {
-        input.len() as u64
+        (input.len() - input.len()) as u64
     }
     fn solve_2(&self, input: &str) -> u64 {
-        input.lines().count() as u64
+        (input.len() - input.len()) as u64
     }
 }
 
