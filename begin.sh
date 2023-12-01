@@ -2,8 +2,8 @@
 
 set -eux
 
-DAY=`date +%d`
-YEAR=2023
+DAY=${1:-`date +%d`}
+YEAR=${2:-2023}
 PROJECT_DIR=$(dirname `readlink -f $0`)
 
 URL=https://adventofcode.com/$YEAR/day/${DAY#0}

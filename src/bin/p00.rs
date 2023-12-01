@@ -8,12 +8,12 @@ impl Prob {
     }
 }
 
-impl Problem<usize, usize> for Prob {
-    fn solve_1(&self, input: &str) -> usize {
-        return input.len();
+impl Problem<u64, u64> for Prob {
+    fn solve_1(&self, input: &str) -> u64 {
+        input.len() as u64
     }
-    fn solve_2(&self, input: &str) -> usize {
-        return input.lines().count();
+    fn solve_2(&self, input: &str) -> u64 {
+        input.lines().count() as u64
     }
 }
 

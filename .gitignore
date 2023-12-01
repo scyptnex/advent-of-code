@@ -9,6 +9,8 @@ target/
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
+# So what I use vim, come at me!
+*.swp
 
 # Added by cargo
 
