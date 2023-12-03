@@ -1,6 +1,8 @@
+use aoc23::coord::*;
 use aoc23::problem::*;
+use itertools::*;
 
-fn find_number(l: &str, start: usize) -> Option<(usize, usize)> {
+fn find_number(l: &str, start: usize) -> Option<UCoord> {
     (start..l.len())
         .find(|i| l.as_bytes()[*i].is_ascii_digit())
         .map(|d| {
@@ -13,7 +15,7 @@ fn find_number(l: &str, start: usize) -> Option<(usize, usize)> {
         })
 }
 
-fn ln_numbers(line: &str, num: usize) -> Vec<(u64, Vec<(usize, usize)>)> {
+fn ln_numbers(line: &str, num: usize) -> Vec<(u64, Vec<UCoord>)> {
     let mut cur = 0;
     let mut ret = vec![];
     loop {
@@ -30,7 +32,7 @@ fn ln_numbers(line: &str, num: usize) -> Vec<(u64, Vec<(usize, usize)>)> {
     ret
 }
 
-fn numbers(input: &str) -> Vec<(u64, Vec<(usize, usize)>)> {
+fn numbers(input: &str) -> Vec<(u64, Vec<UCoord>)> {
     input
         .lines()
         .enumerate()
@@ -56,26 +58,6 @@ fn pieces(inpt: &str) -> Vec<(u8, usize, usize)> {
         .collect()
 }
 
-fn adjacents(c: &(usize, usize)) -> Vec<(usize, usize)> {
-    let cr: i32 = c.0 as i32;
-    let cc: i32 = c.1 as i32;
-    [
-        (1, 1),
-        (0, 1),
-        (-1, 1),
-        (-1, 0),
-        (-1, -1),
-        (0, -1),
-        (1, -1),
-        (1, 0),
-    ]
-    .iter()
-    .map(|o| (o.0 + cr, o.1 + cc))
-    .filter(|(or, oc)| *or >= 0 && *oc >= 0)
-    .map(|(or, oc)| (or as usize, oc as usize))
-    .collect()
-}
-
 struct Prob {}
 
 impl Prob {
@@ -86,35 +68,38 @@ impl Prob {
 
 impl Problem<u64, u64> for Prob {
     fn solve_1(&self, input: &str) -> u64 {
-        let p_locs: std::collections::HashSet<(usize, usize)> =
+        let p_locs: std::collections::HashSet<UCoord> =
             pieces(input).iter().map(|x| (x.1, x.2)).collect();
         numbers(input)
             .iter()
             .filter(|l| {
                 l.1.iter()
-                    .any(|c| adjacents(c).iter().any(|c| p_locs.contains(&c)))
+                    .any(|c| c.adjacent_all().iter().any(|c| p_locs.contains(&c)))
             })
             .map(|l| l.0)
             .sum()
     }
     fn solve_2(&self, input: &str) -> u64 {
-        let nums = numbers(input);
-        pieces(input)
+        let mut g_to_nums: std::collections::HashMap<UCoord, Vec<u64>> = pieces(input)
             .iter()
             .filter(|x| x.0 == b'*')
-            .map(|x| (x.1, x.2))
-            .filter_map(|g| {
-                let gsc: Vec<(u64, Vec<(usize, usize)>)> = nums
-                    .iter()
-                    .filter(|n| n.1.iter().any(|c| adjacents(c).iter().any(|ac| *ac == g)))
-                    .cloned()
-                    .collect();
-                if gsc.len() == 2 {
-                    Some(gsc[0].0 * gsc[1].0)
-                } else {
-                    None
+            .map(|x| ((x.1, x.2), vec![]))
+            .collect();
+        for n in numbers(input) {
+            for adj in
+                n.1.iter()
+                    .flat_map(|nc| nc.adjacent_all().into_iter())
+                    .unique()
+            {
+                if g_to_nums.contains_key(&adj) {
+                    g_to_nums.get_mut(&adj).unwrap().push(n.0);
                 }
-            })
+            }
+        }
+        g_to_nums
+            .iter()
+            .filter(|x| x.1.len() == 2)
+            .map(|x| x.1[0] * x.1[1])
             .sum()
     }
 }
