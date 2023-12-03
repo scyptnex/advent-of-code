@@ -1,0 +1,156 @@
+use aoc23::problem::*;
+
+fn find_number(l: &str, start: usize) -> Option<(usize, usize)> {
+    (start..l.len())
+        .find(|i| l.as_bytes()[*i].is_ascii_digit())
+        .map(|d| {
+            (
+                d,
+                (d..l.len())
+                    .find(|j| !l.as_bytes()[*j].is_ascii_digit())
+                    .unwrap_or(l.len()),
+            )
+        })
+}
+
+fn ln_numbers(line: &str, num: usize) -> Vec<(u64, Vec<(usize, usize)>)> {
+    let mut cur = 0;
+    let mut ret = vec![];
+    loop {
+        if let Some((s, e)) = find_number(line, cur) {
+            let val: u64 = String::from_utf8_lossy(&line.as_bytes()[s..e])
+                .parse()
+                .unwrap();
+            ret.push((val, (s..e).map(|c| (num, c)).collect()));
+            cur = e + 1;
+            continue;
+        }
+        break;
+    }
+    ret
+}
+
+fn numbers(input: &str) -> Vec<(u64, Vec<(usize, usize)>)> {
+    input
+        .lines()
+        .enumerate()
+        .flat_map(|(i, l)| ln_numbers(l, i).into_iter())
+        .collect()
+}
+
+fn pieces(inpt: &str) -> Vec<(u8, usize, usize)> {
+    inpt.lines()
+        .enumerate()
+        .flat_map(|(r, line)| {
+            line.as_bytes()
+                .iter()
+                .enumerate()
+                .filter_map(move |(c, part)| {
+                    if !part.is_ascii_digit() && *part != b'.' {
+                        Some((*part, r, c))
+                    } else {
+                        None
+                    }
+                })
+        })
+        .collect()
+}
+
+fn adjacents(c: &(usize, usize)) -> Vec<(usize, usize)> {
+    let cr: i32 = c.0 as i32;
+    let cc: i32 = c.1 as i32;
+    [
+        (1, 1),
+        (0, 1),
+        (-1, 1),
+        (-1, 0),
+        (-1, -1),
+        (0, -1),
+        (1, -1),
+        (1, 0),
+    ]
+    .iter()
+    .map(|o| (o.0 + cr, o.1 + cc))
+    .filter(|(or, oc)| *or >= 0 && *oc >= 0)
+    .map(|(or, oc)| (or as usize, oc as usize))
+    .collect()
+}
+
+struct Prob {}
+
+impl Prob {
+    fn new() -> Self {
+        Prob {}
+    }
+}
+
+impl Problem<u64, u64> for Prob {
+    fn solve_1(&self, input: &str) -> u64 {
+        let p_locs: std::collections::HashSet<(usize, usize)> =
+            pieces(input).iter().map(|x| (x.1, x.2)).collect();
+        numbers(input)
+            .iter()
+            .filter(|l| {
+                l.1.iter()
+                    .any(|c| adjacents(c).iter().any(|c| p_locs.contains(&c)))
+            })
+            .map(|l| l.0)
+            .sum()
+    }
+    fn solve_2(&self, input: &str) -> u64 {
+        let nums = numbers(input);
+        pieces(input)
+            .iter()
+            .filter(|x| x.0 == b'*')
+            .map(|x| (x.1, x.2))
+            .filter_map(|g| {
+                let gsc: Vec<(u64, Vec<(usize, usize)>)> = nums
+                    .iter()
+                    .filter(|n| n.1.iter().any(|c| adjacents(c).iter().any(|ac| *ac == g)))
+                    .cloned()
+                    .collect();
+                if gsc.len() == 2 {
+                    Some(gsc[0].0 * gsc[1].0)
+                } else {
+                    None
+                }
+            })
+            .sum()
+    }
+}
+
+fn main() {
+    solve(Prob::new());
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    static TEST_INPUT: &str = "467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..";
+
+    #[test]
+    fn test_1() {
+        assert_eq!(find_number("467..114..", 0), Some((0, 3)));
+        assert_eq!(find_number("467..114..", 4), Some((5, 8)));
+        assert_eq!(find_number("..", 0), None);
+        assert_eq!(find_number("", 0), None);
+        assert_eq!(find_number("5", 0), Some((0, 1)));
+        assert_eq!(Prob::new().solve_1(TEST_INPUT), 4361);
+    }
+
+    #[test]
+    fn test_2() {
+        assert_eq!(Prob::new().solve_2(TEST_INPUT), 467835);
+    }
+}
