@@ -20,7 +20,8 @@ fn ln_numbers(line: &str, num: usize) -> Vec<(u64, Vec<UCoord>)> {
     let mut ret = vec![];
     loop {
         if let Some((s, e)) = find_number(line, cur) {
-            let val: u64 = String::from_utf8_lossy(&line.as_bytes()[s..e])
+            let val: u64 = std::str::from_utf8(&line.as_bytes()[s..e])
+                .unwrap()
                 .parse()
                 .unwrap();
             ret.push((val, (s..e).map(|c| (num, c)).collect()));
