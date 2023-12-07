@@ -45,7 +45,6 @@ fn shift(seed: &Seed, r: &Ranges) -> Vec<Seed> {
             out_seed.push((rem_seed.0, taken));
             rem_seed.0 = *s;
             rem_seed.1 -= taken;
-            dbg!(rem_seed);
         }
         //     s-----s+l--1
         assert!(rem_seed.0 >= *s);
@@ -91,7 +90,6 @@ impl Problem<u64, u64> for Prob {
         let mut s = seeds(groups.next().unwrap());
         for gmap in groups {
             s = apply(s, gmap);
-            dbg!(s.len());
         }
         s.iter().map(|s| s.0).min().unwrap()
     }
