@@ -29,13 +29,48 @@ fn rec_configs(pattern: &mut Vec<char>, idx: usize, seq: &Vec<usize>) -> u64 {
     }
 }
 
+fn can_place(run: usize, pat: &[u8], pos: usize) -> bool {
+    pat[pos + 1..pos + 1 + run].iter().all(|x| *x != b'.')
+        && pat[0] != b'#'
+        && pat[pos + 1 + run] == b'#'
+}
+
+fn explore(pat: &mut [u8], seq: &[usize]) -> u64 {
+    let tot = seq.iter().sum::<usize>() + seq.len() + 1;
+    dbg!(&pat, tot, &seq);
+    if pat.len() < tot {
+        return 0;
+    }
+    let cur = seq[0] + 2;
+    let mut total = 0;
+    for i in 0..pat.len() - cur {
+        if !can_place(seq[0], pat, i) {
+            dbg!(i);
+            break;
+        }
+        let saved = pat[i + 1 + seq[0]];
+        pat[i + 1 + seq[0]] = b'.';
+        total += explore(&mut pat[i + seq[0] + 1..], seq);
+        pat[i + 1 + seq[0]] = saved;
+    }
+    total
+}
+
 fn count_configs(line: &str) -> u64 {
     let (pattern, seq) = line.split_once(" ").unwrap();
-    rec_configs(
-        &mut pattern.chars().collect(),
-        0,
-        &seq.split(",").map(str::parse).map(Result::unwrap).collect(),
-    )
+    let mut pat = pattern.as_bytes().iter().copied().collect::<Vec<u8>>();
+    pat.insert(0, b'.');
+    pat.push(b'.');
+    let seqv = seq
+        .split(",")
+        .map(str::parse)
+        .map(Result::unwrap)
+        .collect::<Vec<usize>>();
+    explore(&mut pat, &seqv)
+}
+
+fn count_configs_2(line: &str) -> u64 {
+    0
 }
 
 struct Prob {}
@@ -48,10 +83,10 @@ impl Prob {
 
 impl Problem<u64, u64> for Prob {
     fn solve_1(&self, input: &str) -> u64 {
-        input.lines().map(count_configs).sum()
+        input.lines().take(1).map(count_configs).sum()
     }
     fn solve_2(&self, input: &str) -> u64 {
-        input.lines().map(count_configs).sum()
+        input.lines().map(count_configs_2).sum()
     }
 }
 
@@ -78,6 +113,6 @@ mod tests {
 
     #[test]
     fn test_2() {
-        assert_eq!(Prob::new().solve_2(TEST_INPUT), 0);
+        assert_eq!(Prob::new().solve_2(TEST_INPUT), 525152);
     }
 }
