@@ -1,76 +1,65 @@
 use aoc23::problem::*;
 
-fn rec_configs(pattern: &mut Vec<char>, idx: usize, seq: &Vec<usize>) -> u64 {
-    if let Some(nxt) = (idx..pattern.len()).find(|j| pattern[*j] == '?') {
-        pattern[nxt] = '.';
-        let part = rec_configs(pattern, nxt + 1, seq);
-        pattern[nxt] = '#';
-        let part2 = rec_configs(pattern, nxt + 1, seq);
-        pattern[nxt] = '?';
-        part + part2
-    } else {
-        let mut found_pat: Vec<usize> = vec![];
-        let mut cur_count = 0;
-        for p in pattern.iter() {
-            if *p == '#' {
-                cur_count += 1;
-            } else if cur_count != 0 {
-                found_pat.push(cur_count);
-                cur_count = 0;
-            }
-        }
-        if cur_count != 0 {
-            found_pat.push(cur_count);
-        }
-        match &found_pat == seq {
-            true => 1,
-            false => 0,
-        }
-    }
+fn parse_prob(line: &str) -> (Vec<u8>, Vec<usize>) {
+    let x = line.split_once(" ").unwrap();
+    (
+        x.0.as_bytes().iter().copied().collect(),
+        x.1.split(",").map(str::parse).map(Result::unwrap).collect(),
+    )
 }
 
-fn can_place(run: usize, pat: &[u8], pos: usize) -> bool {
-    pat[pos + 1..pos + 1 + run].iter().all(|x| *x != b'.')
-        && pat[0] != b'#'
-        && pat[pos + 1 + run] == b'#'
+fn appendulize(inp: (Vec<u8>, Vec<usize>)) -> (Vec<u8>, Vec<usize>) {
+    let mut x = inp;
+    x.0.push(b'.');
+    x
 }
 
-fn explore(pat: &mut [u8], seq: &[usize]) -> u64 {
-    let tot = seq.iter().sum::<usize>() + seq.len() + 1;
-    dbg!(&pat, tot, &seq);
-    if pat.len() < tot {
-        return 0;
+fn unfoldulate(inp: (Vec<u8>, Vec<usize>)) -> (Vec<u8>, Vec<usize>) {
+    let mut out_pat = inp.0.clone();
+    let mut out_seq = inp.1.clone();
+    for _ in 1..5 {
+        out_pat.push(b'?');
+        out_pat.append(&mut inp.0.clone());
+        out_seq.append(&mut inp.1.clone());
     }
-    let cur = seq[0] + 2;
-    let mut total = 0;
-    for i in 0..pat.len() - cur {
-        if !can_place(seq[0], pat, i) {
-            dbg!(i);
+    (out_pat, out_seq)
+}
+
+fn can_start(se: usize, idx: usize, pat: &Vec<u8>) -> bool {
+    let end = idx + se;
+    pat[end] != b'#' && !pat[idx..end].iter().any(|p| *p == b'.')
+}
+
+fn count_configs(pat: Vec<u8>, seq: Vec<usize>) -> u64 {
+    let mut table: Vec<Vec<u64>> = vec![vec![0; pat.len() + 1]; seq.len() + 1];
+    // There is exactly 1 way or arranging 0 seqences on 0 tiles...
+    table[0][0] = 1;
+    // using 0 sequences, there is always 1 configuration until you get to a #
+    for i in 0..pat.len() {
+        if pat[i] == b'#' {
             break;
         }
-        let saved = pat[i + 1 + seq[0]];
-        pat[i + 1 + seq[0]] = b'.';
-        total += explore(&mut pat[i + seq[0] + 1..], seq);
-        pat[i + 1 + seq[0]] = saved;
+        table[0][i + 1] = 1;
     }
-    total
-}
-
-fn count_configs(line: &str) -> u64 {
-    let (pattern, seq) = line.split_once(" ").unwrap();
-    let mut pat = pattern.as_bytes().iter().copied().collect::<Vec<u8>>();
-    pat.insert(0, b'.');
-    pat.push(b'.');
-    let seqv = seq
-        .split(",")
-        .map(str::parse)
-        .map(Result::unwrap)
-        .collect::<Vec<usize>>();
-    explore(&mut pat, &seqv)
-}
-
-fn count_configs_2(line: &str) -> u64 {
-    0
+    for (si, se) in seq.iter().enumerate() {
+        for p_start_idx in 0..pat.len() - se {
+            let before = table[si][p_start_idx];
+            // If we cant build a pattern with pieces before this seq, skip
+            if before == 0 {
+                continue;
+            }
+            if !can_start(*se, p_start_idx, &pat) {
+                continue;
+            }
+            for write_idx in p_start_idx + se..pat.len() {
+                if pat[write_idx] == b'#' {
+                    break;
+                }
+                table[si + 1][write_idx + 1] += before;
+            }
+        }
+    }
+    table[seq.len()][pat.len()]
 }
 
 struct Prob {}
@@ -83,10 +72,21 @@ impl Prob {
 
 impl Problem<u64, u64> for Prob {
     fn solve_1(&self, input: &str) -> u64 {
-        input.lines().take(1).map(count_configs).sum()
+        input
+            .lines()
+            .map(parse_prob)
+            .map(appendulize)
+            .map(|c| count_configs(c.0, c.1))
+            .sum()
     }
     fn solve_2(&self, input: &str) -> u64 {
-        input.lines().map(count_configs_2).sum()
+        input
+            .lines()
+            .map(parse_prob)
+            .map(unfoldulate)
+            .map(appendulize)
+            .map(|c| count_configs(c.0, c.1))
+            .sum()
     }
 }
 
