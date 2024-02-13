@@ -44,10 +44,6 @@ impl Grid {
         }
     }
 
-    fn at(&self, r: usize, c: usize) -> Pc {
-        self.0[r][c]
-    }
-
     fn mover(&self, cur: &Beam, d: Dir) -> Option<Beam> {
         match d {
             Dir::N => {
@@ -82,7 +78,7 @@ impl Grid {
     }
 
     fn prop(&self, b: &Beam) -> Vec<Beam> {
-        match self.at(b.0, b.1) {
+        match self.0[b.0][b.1] {
             Pc::None => [self.mover(b, b.2), None],
             Pc::BMir => match b.2 {
                 Dir::N => [self.mover(b, Dir::W), None],
