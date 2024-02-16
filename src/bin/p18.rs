@@ -1,7 +1,6 @@
 use aoc23::coord::*;
 use aoc23::problem::*;
-use std::cmp::{max, min};
-use std::collections::HashSet;
+use std::collections::{BinaryHeap, HashSet};
 use std::str::FromStr;
 
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Ord, PartialOrd)]
@@ -13,12 +12,12 @@ enum Dir {
 }
 
 impl Dir {
-    fn go(&self, c: &ICoord) -> ICoord {
+    fn go(&self, c: &ICoord, d: isize) -> ICoord {
         match self {
-            Dir::U => (c.0 - 1, c.1),
-            Dir::R => (c.0, c.1 + 1),
-            Dir::D => (c.0 + 1, c.1),
-            Dir::L => (c.0, c.1 - 1),
+            Dir::U => (c.0 - d, c.1),
+            Dir::R => (c.0, c.1 + d),
+            Dir::D => (c.0 + d, c.1),
+            Dir::L => (c.0, c.1 - d),
         }
     }
 }
@@ -43,43 +42,82 @@ fn prsl(l: &str) -> (Dir, usize) {
     (d.parse().unwrap(), c.parse().unwrap())
 }
 
-fn solve_1(input: &str) -> isize {
-    let mut hs = HashSet::new();
-    let mut cur: ICoord = (0, 0);
-    hs.insert(cur.clone());
-    let mut bb = (-1, -1, 1, 1);
-    for (d, l) in input.lines().map(prsl) {
-        for _ in 0..l {
-            cur = d.go(&cur);
-            bb = (
-                min(bb.0, cur.0 - 1),
-                min(bb.1, cur.1 - 1),
-                max(bb.2, cur.0 + 1),
-                max(bb.3, cur.1 + 1),
-            );
-            hs.insert(cur.clone());
-        }
-    }
-    let mut wq = vec![(bb.0, bb.1)];
-    let mut outside: HashSet<ICoord> = wq.iter().cloned().collect();
-    while let Some(cur) = wq.pop() {
-        for x in cur
-            .adjacent_cardinal()
-            .into_iter()
-            .filter(|(r, c)| *r >= bb.0 && *r <= bb.2 && *c >= bb.1 && *c <= bb.3)
-            .filter(|x| !hs.contains(x))
-        {
-            if outside.insert(x.clone()) {
-                wq.push(x);
-            }
-        }
-    }
-    let rs = bb.2 - bb.0 + 1;
-    let cs = bb.3 - bb.1 + 1;
-    (rs * cs) - (outside.len() as isize)
+fn prsl2(l: &str) -> (Dir, usize) {
+    let (d, rest) = l.split_once(' ').unwrap();
+    let (c, _) = rest.split_once(' ').unwrap();
+    (d.parse().unwrap(), c.parse().unwrap())
 }
-fn solve_2(input: &str) -> u64 {
-    (input.len() - input.len()) as u64
+
+//   Cutting     Adding     Joining    Splitting
+//   xxxxxx      xxxxx      xxx xxx    xxxxxxxx
+// &
+//   xxx             xx       xxx        xxx
+// =
+//     xxxx      xxxxxx     xxxxxxx    xxx xxxx
+fn resweep(segments: Vec<(isize, usize)>, nxt: (isize, usize)) -> Vec<(isize, usize)> {
+    let mut events: Vec<isize> = [vec![nxt], segments]
+        .into_iter()
+        .flat_map(|v| v.into_iter())
+        .flat_map(|(i, l)| [i, i + (l as isize) - 1].into_iter())
+        .collect();
+    events.sort();
+    let mut ret: Vec<(isize, usize)> = vec![];
+    let mut on = false;
+    let mut cur: isize = isize::MIN;
+    for ev in events {
+        if ev == cur {
+            if !on {
+                cur = ret.pop().unwrap().0;
+            }
+            // TODO remainder
+        } else {
+            if on {
+                ret.push((cur, (ev - cur + 1) as usize));
+            }
+            cur = ev;
+        }
+        on = !on;
+    }
+    ret
+}
+
+fn solver(input: &str, parsef: fn(&str) -> (Dir, usize)) -> isize {
+    let mut loc: ICoord = (0, 0);
+    let mut pq: BinaryHeap<(ICoord, usize)> = BinaryHeap::new();
+    for (d, l) in input.lines().map(parsef) {
+        let nxt = d.go(&loc, l as isize);
+        match d {
+            Dir::R => {
+                pq.push((loc, l + 1));
+            }
+            Dir::L => {
+                pq.push((nxt, l + 1));
+            }
+            _ => {}
+        }
+        loc = nxt;
+    }
+    // Pq is ordered from bottom up horizontal segments, so start at imax
+    let mut sweepline = isize::MAX;
+    let mut segments: Vec<(isize, usize)> = vec![];
+    let mut tot: isize = 0;
+    while let Some(((cur_r, cur_c), cur_l)) = pq.pop() {
+        if cur_r < sweepline {
+            tot += segments.iter().map(|(_, w)| *w as isize).sum::<isize>() * (sweepline - cur_r);
+            sweepline = cur_r;
+        }
+        segments = resweep(segments, (cur_c, cur_l));
+        dbg!(cur_r, cur_c, cur_l, &segments, sweepline, tot);
+    }
+    tot += segments.iter().map(|(_, w)| *w as isize).sum::<isize>();
+    tot
+}
+
+fn solve_1(input: &str) -> isize {
+    solver(input, prsl)
+}
+fn solve_2(input: &str) -> isize {
+    solver(input, prsl2)
 }
 
 fn main() {
