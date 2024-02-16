@@ -43,9 +43,21 @@ fn prsl(l: &str) -> (Dir, usize) {
 }
 
 fn prsl2(l: &str) -> (Dir, usize) {
-    let (d, rest) = l.split_once(' ').unwrap();
-    let (c, _) = rest.split_once(' ').unwrap();
-    (d.parse().unwrap(), c.parse().unwrap())
+    let (_, rest) = l.split_once('#').unwrap();
+    (
+        match rest.as_bytes()[5] {
+            b'0' => Dir::R,
+            b'1' => Dir::D,
+            b'2' => Dir::L,
+            b'3' => Dir::U,
+            _ => panic!(),
+        },
+        usize::from_str_radix(&rest[0..5], 16).unwrap(),
+    )
+}
+
+fn bredth(segments: &Vec<(isize, usize)>) -> isize {
+    segments.iter().map(|(_, w)| *w as isize).sum::<isize>()
 }
 
 //   Cutting     Adding     Joining    Splitting
@@ -102,14 +114,17 @@ fn solver(input: &str, parsef: fn(&str) -> (Dir, usize)) -> isize {
     let mut segments: Vec<(isize, usize)> = vec![];
     let mut tot: isize = 0;
     while let Some(((cur_r, cur_c), cur_l)) = pq.pop() {
+        let cur_bred = bredth(&segments);
         if cur_r < sweepline {
-            tot += segments.iter().map(|(_, w)| *w as isize).sum::<isize>() * (sweepline - cur_r);
+            tot += cur_bred * (sweepline - cur_r);
             sweepline = cur_r;
         }
         segments = resweep(segments, (cur_c, cur_l));
-        dbg!(cur_r, cur_c, cur_l, &segments, sweepline, tot);
+        let nxt_bred = bredth(&segments);
+        tot += std::cmp::max(cur_bred - nxt_bred, 0);
+        //dbg!(cur_r, cur_c, cur_l, &segments, sweepline, tot);
     }
-    tot += segments.iter().map(|(_, w)| *w as isize).sum::<isize>();
+    tot += bredth(&segments);
     tot
 }
 
@@ -151,6 +166,6 @@ U 2 (#7a21e3)";
 
     #[test]
     fn test_2() {
-        assert_eq!(solve_2(TEST_INPUT), 0);
+        assert_eq!(solve_2(TEST_INPUT), 952_408_144_115);
     }
 }
