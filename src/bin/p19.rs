@@ -140,7 +140,7 @@ fn accepts(rules: &Rules, p: &Part) -> bool {
                 Dst::A => return true,
                 Dst::R => return false,
                 Dst::Go(x) => {
-                    cur = (x.clone(), 0);
+                    cur = (x, 0);
                 }
             }
         } else {

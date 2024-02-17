@@ -1,6 +1,6 @@
 use aoc23::coord::*;
 use aoc23::problem::*;
-use std::collections::{BinaryHeap, HashSet};
+use std::collections::BinaryHeap;
 use std::str::FromStr;
 
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Ord, PartialOrd)]
