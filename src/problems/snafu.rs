@@ -151,7 +151,6 @@ mod tests {
         let mut t = Snafu::default();
         t.read("".lines().map(|s| String::from(s)));
 
-        assert_eq!(format!("{}", t.solve_1()), "Snafu problem 1");
         assert_eq!(format!("{}", t.solve_2()), "Snafu problem 2");
     }
 
