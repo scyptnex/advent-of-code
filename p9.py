@@ -1,28 +1,30 @@
 import sys
 
+
 def addgap(gaps, o, w):
     if w not in gaps:
         gaps[w] = []
     gaps[w].append(o)
 
+
 cur = 0
 disk = []
-is_file=True
+is_file = True
 disk2 = []
-gaps={}
+gaps = {}
 
 for c in sys.stdin.readline().strip():
     w = int(c)
     if is_file:
         disk2.append((cur, len(disk), w))
-        disk += [cur]*w
+        disk += [cur] * w
         cur += 1
     else:
         addgap(gaps, len(disk), w)
-        disk += [-1]*w
+        disk += [-1] * w
     is_file = not is_file
 
-end = len(disk)-1
+end = len(disk) - 1
 start = 0
 while start < end:
     if disk[start] != -1:
@@ -39,9 +41,10 @@ tot = 0
 for i, e in enumerate(disk):
     if e == -1:
         break
-    tot += i*e
+    tot += i * e
 
 print(tot)
+
 
 def find_and_fill(gaps, fi, fw):
     ming = -1
@@ -63,7 +66,8 @@ def find_and_fill(gaps, fi, fw):
     gaps[ming] = gaps[ming][1:]
     return mino
 
-f = len(disk2)-1
+
+f = len(disk2) - 1
 while f > 0:
     fi, fo, fw = disk2[f]
     no = find_and_fill(gaps, fo, fw)
@@ -76,5 +80,5 @@ while f > 0:
 tot = 0
 for fi, fo, fw in disk2:
     for i in range(0, fw):
-        tot += fi*(fo+i)
+        tot += fi * (fo + i)
 print(tot)

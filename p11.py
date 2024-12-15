@@ -1,23 +1,26 @@
 import sys
 
+
 def digits(i: int) -> list[int]:
     s = str(i)
-    if len(s)%2 == 1:
+    if len(s) % 2 == 1:
         return None
-    return [int(s[:len(s)//2]), int(s[len(s)//2:])]
+    return [int(s[: len(s) // 2]), int(s[len(s) // 2 :])]
+
 
 def evolve(stns: list[int]) -> list[int]:
     ret = []
     for s in stns:
         if s == 0:
             ret.append(1)
-            continue;
+            continue
         hlvs = digits(s)
         if hlvs:
             ret += hlvs
         else:
-            ret.append(s*2024)
+            ret.append(s * 2024)
     return ret
+
 
 def slv(mem, val, iters):
     if iters == 0:
@@ -26,11 +29,12 @@ def slv(mem, val, iters):
         ev = evolve([val])
         ret = 0
         for e in ev:
-            ret += slv(mem, e, iters-1)
+            ret += slv(mem, e, iters - 1)
         mem[(val, iters)] = ret
     return mem[(val, iters)]
-    
-mem={}
+
+
+mem = {}
 stones = [int(v) for v in sys.stdin.readline().strip().split()]
 
 t25 = 0

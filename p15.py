@@ -53,14 +53,14 @@ def push(gap, drc, pushed_boxes):
             return push(move(move(gap, offs(drc)), offs(drc)), drc, pushed_boxes)
         elif drc == "^":
             return push(move(gap, offs(drc)), drc, pushed_boxes) and push(
-                move(move(gap, offs(drc)), offs('>')), drc, pushed_boxes
+                move(move(gap, offs(drc)), offs(">")), drc, pushed_boxes
             )
         else:
             return push(move(gap, offs(drc)), drc, pushed_boxes) and push(
-                move(move(gap, offs(drc)), offs('>')), drc, pushed_boxes
+                move(move(gap, offs(drc)), offs(">")), drc, pushed_boxes
             )
-    lft_half = move(gap, offs('<'))
-    if  lft_half in boxes:
+    lft_half = move(gap, offs("<"))
+    if lft_half in boxes:
         return push(lft_half, drc, pushed_boxes)
     return True
 

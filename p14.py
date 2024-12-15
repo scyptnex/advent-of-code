@@ -1,23 +1,25 @@
 import sys
 import time
 
+
 class rbt:
-
     def __init__(self, l):
-        [[self.x, self.y], [self.vx, self.vy]] = [[int(j) for j in x[2:].split(',')] for x in l.split(' ')]
-        
-    def adv(self, t, w, h):
-        nx = self.x + self.vx*t
-        ny = self.y + self.vy*t
-        if nx < 0:
-            nx = nx + (nx//-w + 2)*w
-        if ny < 0:
-            ny = ny + (ny//-h + 2)*h
-        nx = nx%w
-        ny = ny%h
+        [[self.x, self.y], [self.vx, self.vy]] = [
+            [int(j) for j in x[2:].split(",")] for x in l.split(" ")
+        ]
 
-        ww = w//2
-        hh = h//2
+    def adv(self, t, w, h):
+        nx = self.x + self.vx * t
+        ny = self.y + self.vy * t
+        if nx < 0:
+            nx = nx + (nx // -w + 2) * w
+        if ny < 0:
+            ny = ny + (ny // -h + 2) * h
+        nx = nx % w
+        ny = ny % h
+
+        ww = w // 2
+        hh = h // 2
         ret = 0
         if nx == ww:
             return -1
@@ -30,39 +32,41 @@ class rbt:
         return ret
 
     def move(self, w, h):
-        self.x = (self.x + w + self.vx)%w
-        self.y = (self.y + h + self.vy)%h
+        self.x = (self.x + w + self.vx) % w
+        self.y = (self.y + h + self.vy) % h
 
 
 rbts = [rbt(l.strip()) for l in sys.stdin.readlines()]
 wi = 101
 he = 103
 
-quads = [0]*5
+quads = [0] * 5
 for r in rbts:
     quads[r.adv(100, wi, he)] += 1
 
-print(quads[0]*quads[1]*quads[2]*quads[3])
+print(quads[0] * quads[1] * quads[2] * quads[3])
+
 
 def show(i, m, wi, he):
     for y in range(he):
         for x in range(wi):
-            print('X ' if m[x][y] else '  ', end='')
+            print("X " if m[x][y] else "  ", end="")
         print()
-    print(i, '----------------------')
+    print(i, "----------------------")
+
 
 def oddsof(rbts, wi, he):
-    sw = wi//5
-    sh = he//5
-    counts = [[0 for _ in range(6)]for _ in range(6)]
+    sw = wi // 5
+    sh = he // 5
+    counts = [[0 for _ in range(6)] for _ in range(6)]
     for r in rbts:
-        counts[r.x//sw][r.y//sh] += 1
-    expected = len(rbts)/25
+        counts[r.x // sw][r.y // sh] += 1
+    expected = len(rbts) / 25
     sm = 0
     for a in range(5):
         for b in range(5):
             nom = counts[a][b] - expected
-            nom = nom*nom
+            nom = nom * nom
             sm += nom / expected
     return sm
 

@@ -31,6 +31,6 @@ for e in l2:
 sc = 0
 for e in l1:
     if e in hist:
-        sc += e*hist[e]
+        sc += e * hist[e]
 
 print(sc)
