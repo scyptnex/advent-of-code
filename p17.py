@@ -12,9 +12,9 @@ class Cpu:
     def run(self, pgm):
         self.pc = 0
         self.out = []
-        self.dump()
+        #self.dump()
         while self.pc < len(pgm):
-            print(pgm[self.pc], end="")
+            #print(pgm[self.pc], end="")
             r = [
                 self.adv,
                 self.bxl,
@@ -29,7 +29,7 @@ class Cpu:
                 self.pc += 2
             else:
                 self.pc = r
-            self.dump()
+            #self.dump()
         return self.out
 
     def dump(self):
@@ -77,7 +77,14 @@ def go():
     sys.stdin.readline()
     pgm = [int(x) for x in sys.stdin.readline().split(": ")[1].strip().split(",")]
     print(",".join(str(i) for i in Cpu(a, b, c).run(pgm)))
-    print(",".join(str(i) for i in Cpu(117440, b, c).run(pgm)))
+    
+    for i in range(0, 8):
+        bo = i^1
+        bx = bo^5
+        print(i, bo, bx, end=" - ")
+        for j in range(0, 8):
+            print(j, ":", j^bx, end=", ")
+        print()
 
 
 go()

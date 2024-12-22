@@ -20,7 +20,7 @@ def cheatable_from(track, dist, cstart):
         cost, cur, last_on_open = q.get()
         if cur in v:
             oldc, oldl = v[cur]
-            if not oldl or last_on_open:
+            if not(cost == oldc and oldl and not last_on_open):
                 continue
         v[cur] = (cost, last_on_open)
         on_open = track[cur[0]][cur[1]] != '#'
@@ -109,8 +109,8 @@ def go():
             gs[s] += 1
             if s >= 100:
                 gt100 += 1
-        #for s in sorted(gs.keys()):
-        #    print(s, gs[s])
+        for s in sorted(gs.keys()):
+            print(s, gs[s])
         print(gt100)
     desc(savings)
     desc(savingss)
