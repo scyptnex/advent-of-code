@@ -35,7 +35,7 @@ def det(netw, q: queue.deque, wires, val):
 
 def wr(wrs, n):
     if n not in wrs:
-        return ' [label="--"]'
+        return ''
     if wrs[n]:
         return ' [label="1"]'
     return ' [label="0"]'
@@ -169,9 +169,10 @@ def determine_wrong(netw, known_good, fwd, bwd, nbr, cur, inp, oup):
         for susb in suspb:
             net2 = swapn(netw, susa, susb)
             c = check(net2, nbr, cur)
+            print(susa, susb, c)
             if c[0] or c[1]:
                 continue
-            return (net2, susa, susb)
+            #return (net2, susa, susb)
     raise Exception("IDK!!!")
 
 
@@ -199,15 +200,11 @@ def analyze(netw):
         c = check(netw, len(zs), i)
         if c[0] or c[1]:
             print(i, c)
-            netw, ba, bb = determine_wrong(netw, known_good, fwd, bwd, len(zs), i, c[0], c[1])
-            bads.append(ba)
-            bads.append(bb)
-            print(bads)
+            raise("BAD!")
         else:
             for kgs in c[2]:
                 for kgd in c[3]:
                     known_good |= tc(fwd, kgs) & tc(bwd, kgd)
-    print(new_bads)
 
 def go():
     inits = []
@@ -226,6 +223,18 @@ def go():
             addl(nets, sp[0], sp[2], sp[1], sp[4])
             addl(nets, sp[2], sp[0], sp[1], sp[4])
     print(solve(nets, inits))
-    print(analyze(nets))
+    #dotg(nets, {})
+    swaps=[
+           ['z07', 'gmt'],
+           ['qjj', 'cbj'],            
+           ['dmn', 'z18'],
+           ['cfk', 'z35'],
+            ]
+    l = []
+    for s in swaps:
+        nets = swapn(nets, s[0], s[1])
+        l += s
+    analyze(nets)
+    print(",".join(sorted(l)))
 
 go()
