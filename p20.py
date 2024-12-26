@@ -52,16 +52,22 @@ def cheatable_front(track, dist, cstart):
                 newf.append(a)
         frontier = newf
 
+def mht_dist_cheats(cstart, dist, e2s):
+    for e in e2s:
+        mhd = abs(cstart[0] - e[0]) + abs(cstart[1] - e[1])
+        if mhd != 0 and mhd <= dist:
+            yield(e, mhd)
 
 def cheats(track, dist, savings, cstart, s2e, e2s, limit):
-    for cend, ctime in cheatable_from(track, dist, cstart):
+    #for cend, ctime in cheatable_from(track, dist, cstart):
+    for cend, ctime in mht_dist_cheats(cstart, dist, e2s):
         if cend not in e2s:
             continue
         total = s2e[cstart] + ctime + e2s[cend]
         if total >= limit:
             continue
-        if (limit - total) == 66:
-            print(limit, total, cstart, cend, s2e[cstart] , ctime , e2s[cend])
+        #if (limit - total) == 66:
+        #    print(limit, total, cstart, cend, s2e[cstart] , ctime , e2s[cend])
         savings[(cstart, cend)] = limit - total
 
 
