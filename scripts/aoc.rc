@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+
+set -eu
+
+export AOC_RC_SCRIPT="$(basename "$0")"
+export AOC_DIR="$(readlink -f "$(dirname "$0")/..")"
+
+if [ ! -d "${AOC_DIR}/.env" ]; then
+    echo "No .env, make one then pip install advent..."
+    exit 42
+fi
+
+source "${AOC_DIR}/.env/bin/activate"

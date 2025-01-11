@@ -19,7 +19,7 @@ fn fuel2(x: i64) -> i64 {
 }
 
 fn aoc01() {
-    let filename = "input/1b.txt";
+    let filename = "input/d01";
 
     println!("{}", fuel2(12));
     println!("{}", fuel2(14));
