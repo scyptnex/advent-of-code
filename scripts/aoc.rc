@@ -13,7 +13,7 @@ fi
 source "${AOC_DIR}/.env/bin/activate"
 
 function aoc_parse_year_day(){
-    if [ "$#" < 2 ]; then
+    if [ "$#" -lt 2 ]; then
         echo "usage: $0 <YEAR> <DAY>"
         echo
         echo "For example $> $0 $(date +"%y %d")"
