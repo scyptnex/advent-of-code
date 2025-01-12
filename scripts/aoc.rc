@@ -11,3 +11,21 @@ if [ ! -d "${AOC_DIR}/.env" ]; then
 fi
 
 source "${AOC_DIR}/.env/bin/activate"
+
+function aoc_parse_year_day(){
+    if [ "$#" < 2 ]; then
+        echo "usage: $0 <YEAR> <DAY>"
+        echo
+        echo "For example $> $0 $(date +"%y %d")"
+        exit 42
+    fi
+    
+    # Day and year as 2-digit numbers (zero padded)
+    YEAR="${1:(-2)}"
+    DAY="0$2"
+    DAY="${DAY:(-2)}"
+
+    INPUT_DIR="${AOC_DIR}/${YEAR}/input"
+    INPUT_PROD="${INPUT_DIR}/d${DAY}"
+    INPUT_TEST="${INPUT_DIR}/t${DAY}"
+}
