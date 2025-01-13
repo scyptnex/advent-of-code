@@ -1,4 +1,4 @@
-use std::io::{self, BufRead, BufReader, Read};
+use std::io;
 
 fn compu(n: usize, v: usize, x: Vec<usize>) -> usize {
     let mut x = x;
