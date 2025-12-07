@@ -1,4 +1,4 @@
-use aoc25::problem::*;
+use aoc25::*;
 
 fn repeats(s: &str, prefix_width: usize) -> bool {
     if s.len() % prefix_width != 0 {

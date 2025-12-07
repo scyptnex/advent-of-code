@@ -1,4 +1,4 @@
-use aoc25::problem::*;
+use aoc25::*;
 
 struct Prob {}
 
@@ -49,7 +49,6 @@ impl Problem<u64, u64> for Prob {
             if val == 0 {
                 zeroes += 1;
             }
-            println!("{} {}", val, zeroes);
         }
         zeroes
     }

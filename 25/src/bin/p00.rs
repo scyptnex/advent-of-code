@@ -1,4 +1,4 @@
-use aoc25::problem::*;
+use aoc25::*;
 
 struct Prob {}
 

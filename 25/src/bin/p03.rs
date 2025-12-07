@@ -1,4 +1,4 @@
-use aoc25::problem::*;
+use aoc25::*;
 
 fn max_joltage(s: &str) -> u64 {
     let mut maxi = 0;

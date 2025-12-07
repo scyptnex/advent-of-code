@@ -1,4 +1,4 @@
-use aoc25::problem::*;
+use aoc25::*;
 
 fn in_any_range(i: &u64, rs: &Vec<(u64, u64)>) -> bool {
     rs.iter().any(|(s, t)| s <= i && t >= i)
